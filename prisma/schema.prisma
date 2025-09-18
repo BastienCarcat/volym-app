@@ -1,0 +1,104 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserType {
+  Coach
+  Athlete
+}
+
+enum Gender {
+  Male
+  Female
+}
+
+enum SetType {
+  WarmUp
+  Normal
+  DropsSet
+  Failure
+}
+
+model User {
+  id        String   @id @default(uuid())
+  weight    Int?
+  height    Int?
+  lastname  String
+  firstname String
+  gender    Gender
+  email     String   @unique
+  type      UserType @default(Athlete)
+
+  programs  Program[]
+  workouts  Workout[]
+}
+
+model Program {
+  id         String            @id @default(uuid())
+  createdBy  String
+  note       String?           @db.Text
+  name       String
+
+  user       User              @relation(fields: [createdBy], references: [id])
+  schedules  ProgramSchedule[]
+}
+
+model ProgramSchedule {
+  id         String   @id @default(uuid())
+  programId  String
+  workoutId  String
+  day        String
+  weekNumber Int?
+
+  program Program @relation(fields: [programId], references: [id])
+  workout Workout @relation(fields: [workoutId], references: [id])
+}
+
+model Workout {
+  id         String           @id @default(uuid())
+  createdBy  String
+  note       String?           @db.Text
+  name       String
+
+  user       User             @relation(fields: [createdBy], references: [id])
+  exercises  WorkoutExercise[]
+  schedules  ProgramSchedule[]
+}
+
+model WorkoutExercise {
+  id         String         @id @default(uuid())
+  workoutId  String
+  exerciseId String
+  note       String?           @db.Text
+  order      Int
+  supersetId String?
+
+  workout    Workout        @relation(fields: [workoutId], references: [id])
+  sets       ExerciseSet[]
+}
+
+model ExerciseSet {
+  id               String          @id @default(uuid())
+  workoutExerciseId String
+  weight           Int?
+  reps             Int?
+  rest             Int?
+  order            Int
+  type             SetType             @default(Normal)
+  rpe              Int?
+
+  workoutExercise  WorkoutExercise @relation(fields: [workoutExerciseId], references: [id])
+}
