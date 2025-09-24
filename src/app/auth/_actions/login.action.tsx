@@ -20,5 +20,5 @@ export const login = actionClient
     }
 
     revalidatePath("/", "layout");
-    redirect("/dashboard");
+    redirect("/");
   });

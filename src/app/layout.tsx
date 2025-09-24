@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     "Application de musculation pour créer des programmes d'entraînement",
 };
 
-export default function RootLayout({
+export default function MainLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;

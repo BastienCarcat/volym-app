@@ -17,5 +17,5 @@ export const signup = actionClient
     }
 
     revalidatePath("/", "layout");
-    redirect("/dashboard");
+    redirect("/");
   });
