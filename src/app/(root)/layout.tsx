@@ -1,5 +1,5 @@
 import { AppSidebar } from "@/components/layout/sidebar/app-sidebar";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 export default function RootLayout({
   children,
@@ -7,14 +7,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div>
-      <SidebarProvider>
-        <AppSidebar />
-        <main>
-          <SidebarTrigger />
-          {children}
-        </main>
-      </SidebarProvider>
-    </div>
+    <SidebarProvider>
+      <AppSidebar />
+      <div className="h-screen flex flex-col w-full">{children}</div>
+    </SidebarProvider>
   );
 }

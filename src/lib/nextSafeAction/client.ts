@@ -2,6 +2,7 @@ import {
   createSafeActionClient,
   DEFAULT_SERVER_ERROR_MESSAGE,
 } from "next-safe-action";
+import { getCurrentUser } from "../auth/getUser";
 
 export class ActionError extends Error {
   constructor(message: string) {
@@ -20,4 +21,14 @@ export const actionClient = createSafeActionClient({
 
     return DEFAULT_SERVER_ERROR_MESSAGE;
   },
+});
+
+export const authActionClient = actionClient.use(async ({ next }) => {
+  const currentUser = await getCurrentUser();
+
+  if (!currentUser) {
+    throw new ActionError("User not found");
+  }
+
+  return next({ ctx: { user: currentUser } });
 });

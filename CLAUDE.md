@@ -119,3 +119,4 @@ reps, rest, order, type, rpe)
 # IMPORTANT RULES
 
 - All the app must be in english (including metadata and others)
+- Always document global and utility functions, explaining their purpose and usage in detail

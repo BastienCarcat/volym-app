@@ -1,7 +1,6 @@
 import * as React from "react";
 
-import { NavMain } from "@/components/layout/sidebar/nav-main";
-import { NavGroup } from "@/components/layout/sidebar/nav-group";
+import { NavGroupWorkouts } from "@/components/layout/sidebar/groups/nav-group-workouts";
 import { NavUser } from "@/components/layout/sidebar/nav-user";
 import {
   Sidebar,
@@ -11,24 +10,14 @@ import {
   SidebarRail,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
 import { NavHeader } from "./nav-header";
+import { getAuthenticatedUser } from "@/lib/auth/getUser";
 
 export async function AppSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
+  const user = await getAuthenticatedUser();
 
-  if (error || !user) {
-    redirect("/auth/login");
-  }
-
-  // This is sample data.
   const data = {
     workouts: {
       title: "Workouts",
@@ -57,7 +46,7 @@ export async function AppSidebar({
       </SidebarHeader>
       <SidebarSeparator />
       <SidebarContent>
-        <NavGroup group={data.workouts} />
+        <NavGroupWorkouts group={data.workouts} />
       </SidebarContent>
       <SidebarSeparator />
       <SidebarFooter>

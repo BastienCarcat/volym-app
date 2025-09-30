@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
+import { QueryProvider } from "@/lib/tanstack/query-provider";
 
 export const metadata: Metadata = {
   title: "Volym",
@@ -16,8 +17,10 @@ export default function MainLayout({
   return (
     <html lang="en">
       <body className={`antialiased`}>
-        <main>{children}</main>
-        <Toaster />
+        <QueryProvider>
+          <main>{children}</main>
+          <Toaster />
+        </QueryProvider>
       </body>
     </html>
   );

@@ -27,34 +27,36 @@ import {
 } from "@/components/ui/sidebar";
 import { signOut } from "@/app/auth/_actions/signout.action";
 import { useAction } from "next-safe-action/hooks";
-import type { User } from "@supabase/supabase-js";
 import { useCallback, useMemo } from "react";
+import { CompleteUser } from "@/lib/auth/types";
 
-function UserCard({ user }: React.ComponentProps<"div"> & { user: User }) {
+function UserCard({
+  user: { authUser },
+}: React.ComponentProps<"div"> & { user: CompleteUser }) {
   const userLetters = useMemo(() => {
-    return user.email?.substring(0, 2).toUpperCase() || "AA";
-  }, [user.email]);
+    return authUser.email?.substring(0, 2).toUpperCase() || "AA";
+  }, [authUser.email]);
 
   return (
     <>
       <Avatar className="h-8 w-8 rounded-lg">
         <AvatarImage
-          src={user.user_metadata?.avatar}
-          alt={user.user_metadata?.name || user.email}
+          src={authUser.user_metadata?.avatar}
+          alt={authUser.user_metadata?.name || authUser.email}
         />
         <AvatarFallback className="rounded-lg">{userLetters}</AvatarFallback>
       </Avatar>
       <div className="grid flex-1 text-left text-sm leading-tight">
         <span className="truncate font-medium">
-          {user.user_metadata?.name || user.email}
+          {authUser.user_metadata?.name || authUser.email}
         </span>
-        <span className="truncate text-xs">{user.email}</span>
+        <span className="truncate text-xs">{authUser.email}</span>
       </div>
     </>
   );
 }
 
-export function NavUser({ user }: { user: User }) {
+export function NavUser({ user }: { user: CompleteUser }) {
   const { isMobile } = useSidebar();
 
   const { execute: logout } = useAction(signOut);
