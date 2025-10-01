@@ -1,7 +1,16 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'gym-fit.s3.fr-par.scw.cloud',
+        port: '',
+        pathname: '/public/exercises/images/**',
+      },
+    ],
+  },
 };
 
 export default nextConfig;

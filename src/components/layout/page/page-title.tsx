@@ -1,6 +1,6 @@
 import * as React from "react";
 
-export async function PageTitle({
+export function PageTitle({
   title,
 }: React.ComponentProps<"div"> & { title: string }) {
   return (

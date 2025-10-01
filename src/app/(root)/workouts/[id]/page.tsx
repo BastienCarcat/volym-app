@@ -1,5 +1,6 @@
 import { PageTitle } from "@/components/layout/page/page-title";
 import { getWorkoutById } from "../_actions/getWorkoutById.action";
+import { WorkoutExercisesList } from "../_components/WorkoutExercisesList";
 
 export default async function WorkoutPage({
   params,
@@ -11,7 +12,8 @@ export default async function WorkoutPage({
 
   return (
     <div>
-      <PageTitle title="New workout" />
+      <PageTitle title={workout?.name || "Workout"} />
+      <WorkoutExercisesList workoutId={id} />
     </div>
   );
 }
