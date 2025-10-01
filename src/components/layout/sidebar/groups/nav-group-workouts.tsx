@@ -1,25 +1,71 @@
 "use client";
 
 import React, { useCallback } from "react";
-import { Plus } from "lucide-react";
-import { Group, NavGroup } from "@/components/layout/sidebar/nav-group";
-import { useCreateWorkout } from "@/app/(root)/workouts/_hooks/use-workouts";
+import { Loader2, Plus } from "lucide-react";
+import {
+  useCreateWorkout,
+  useGetWorkouts,
+} from "@/app/(root)/workouts/_hooks/use-workouts";
+import {
+  SidebarGroup,
+  SidebarGroupAction,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-export function NavGroupWorkouts({ group }: { group: Group }) {
-  const createWorkoutMutation = useCreateWorkout();
+export function NavGroupWorkouts() {
+  const router = useRouter();
+  const { mutate, isPending: createIsPending } = useCreateWorkout({
+    onSuccess: (newWorkout) => {
+      router.push(`/workouts/${newWorkout.id}`);
+    },
+  });
+  const { data: workouts, isLoading: getIsLoading } = useGetWorkouts();
 
   const handleAddWorkout = useCallback(() => {
-    createWorkoutMutation.mutate({
+    mutate({
       name: "New Workout",
     });
-  }, [createWorkoutMutation]);
+  }, [mutate]);
 
   return (
-    <NavGroup group={group}>
-      <NavGroup.Action title={`Add ${group.entity}`} onClick={handleAddWorkout}>
-        <Plus />
-        <span className="sr-only">Add {group.entity}</span>
-      </NavGroup.Action>
-    </NavGroup>
+    <SidebarGroup>
+      <SidebarGroupLabel>Workouts</SidebarGroupLabel>
+      <SidebarGroupAction
+        title="Add workout"
+        onClick={handleAddWorkout}
+        disabled={createIsPending}
+      >
+        {createIsPending ? (
+          <Loader2 className="text-gray-400 animate-spin" />
+        ) : (
+          <Plus />
+        )}
+        <span className="sr-only">Add workout</span>
+      </SidebarGroupAction>
+      <SidebarMenu>
+        {getIsLoading ? (
+          <SidebarMenuItem className="flex justify-center pt-2">
+            <Loader2 className="text-gray-400 animate-spin" />
+          </SidebarMenuItem>
+        ) : workouts?.length === 0 ? (
+          <SidebarMenuItem>
+            <SidebarMenuButton disabled>No workouts yet</SidebarMenuButton>
+          </SidebarMenuItem>
+        ) : (
+          workouts?.map((item) => (
+            <SidebarMenuItem key={item.id}>
+              <SidebarMenuButton asChild>
+                <Link href={`/workouts/${item.id}`}>{item.name}</Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))
+        )}
+      </SidebarMenu>
+    </SidebarGroup>
   );
 }

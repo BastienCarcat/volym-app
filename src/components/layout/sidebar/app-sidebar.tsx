@@ -18,27 +18,6 @@ export async function AppSidebar({
 }: React.ComponentProps<typeof Sidebar>) {
   const user = await getAuthenticatedUser();
 
-  const data = {
-    workouts: {
-      title: "Workouts",
-      entity: "workouts",
-      items: [
-        {
-          name: "Upper",
-          id: "1",
-        },
-        {
-          name: "Lower",
-          id: "2",
-        },
-        {
-          name: "Chest",
-          id: "3",
-        },
-      ],
-    },
-  };
-
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -46,7 +25,7 @@ export async function AppSidebar({
       </SidebarHeader>
       <SidebarSeparator />
       <SidebarContent>
-        <NavGroupWorkouts group={data.workouts} />
+        <NavGroupWorkouts />
       </SidebarContent>
       <SidebarSeparator />
       <SidebarFooter>
