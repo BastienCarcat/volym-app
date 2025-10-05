@@ -21,14 +21,35 @@ export const removeExerciseSet = authActionClient
           },
         },
       },
+      select: {
+        id: true,
+        order: true,
+        workoutExerciseId: true,
+      },
     });
 
     if (!exerciseSet) {
       throw new Error("Exercise set not found");
     }
 
+    // Delete the set
     await prisma.exerciseSet.delete({
       where: { id },
+    });
+
+    // Decrement the order of all sets that come after the deleted set
+    await prisma.exerciseSet.updateMany({
+      where: {
+        workoutExerciseId: exerciseSet.workoutExerciseId,
+        order: {
+          gt: exerciseSet.order,
+        },
+      },
+      data: {
+        order: {
+          decrement: 1,
+        },
+      },
     });
 
     return { success: true };

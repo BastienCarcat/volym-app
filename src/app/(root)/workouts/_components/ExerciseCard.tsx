@@ -49,7 +49,6 @@ interface ExerciseCardProps {
 
 export function ExerciseCard({
   workoutExerciseId,
-  exerciseId,
   name,
   image,
   targetMuscles = [],
@@ -69,15 +68,15 @@ export function ExerciseCard({
     setNote(initialNote || "");
   }, [initialNote]);
 
-  const handleAddSet = () => {
-    const newOrder = sets.length + 1;
-    const lastSet = sets[sets.length - 1];
+  const handleAddSet = (insertAfterIndex?: number) => {
+    const newOrder = insertAfterIndex !== undefined ? insertAfterIndex + 2 : sets.length + 1;
+    const referenceSet = insertAfterIndex !== undefined ? sets[insertAfterIndex] : sets[sets.length - 1];
 
     addSet({
       workoutExerciseId,
-      weight: lastSet?.weight || undefined,
-      reps: lastSet?.reps || undefined,
-      rest: lastSet?.rest || undefined,
+      weight: referenceSet?.weight || undefined,
+      reps: referenceSet?.reps || undefined,
+      rest: referenceSet?.rest || undefined,
       order: newOrder,
       type: "Normal",
     });
@@ -296,7 +295,7 @@ export function ExerciseCard({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={handleAddSet}
+                      onClick={() => handleAddSet(index)}
                       className="h-8 w-8 p-0 hover:bg-green-50 hover:text-green-600 transition-colors"
                     >
                       <Plus className="w-4 h-4" />

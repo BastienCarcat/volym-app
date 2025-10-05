@@ -38,6 +38,22 @@ export const addExerciseSet = authActionClient
       throw new ActionError("Workout exercise not found");
     }
 
+    // First, increment the order of all sets that come after the insertion point
+    await prisma.exerciseSet.updateMany({
+      where: {
+        workoutExerciseId: input.workoutExerciseId,
+        order: {
+          gte: input.order,
+        },
+      },
+      data: {
+        order: {
+          increment: 1,
+        },
+      },
+    });
+
+    // Then create the new set at the specified order
     const exerciseSet = await prisma.exerciseSet.create({
       data: {
         workoutExerciseId: input.workoutExerciseId,

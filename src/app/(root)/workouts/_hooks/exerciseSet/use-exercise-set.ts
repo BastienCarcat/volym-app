@@ -68,9 +68,20 @@ export function useAddExerciseSet(workoutId: string) {
           ...old,
           exercises: (old.exercises || []).map((ex) => {
             if (ex.id === setData.workoutExerciseId) {
+              // Update the order of existing sets that come after the insertion point
+              const updatedSets = ex.sets.map((set) => {
+                if (set.order >= setData.order) {
+                  return { ...set, order: set.order + 1 };
+                }
+                return set;
+              });
+              
+              // Add the new set and sort by order
+              const newSets = [...updatedSets, tempSet].sort((a, b) => a.order - b.order);
+              
               return {
                 ...ex,
-                sets: [...ex.sets, tempSet],
+                sets: newSets,
               };
             }
             return ex;
@@ -96,11 +107,13 @@ export function useAddExerciseSet(workoutId: string) {
           ...old,
           exercises: (old.exercises || []).map((ex) => {
             if (ex.id === variables.workoutExerciseId) {
+              const updatedSets = ex.sets.map((set) =>
+                set.id === context?.tempSetId ? data : set
+              );
+              // Sort by order to maintain correct sequence
               return {
                 ...ex,
-                sets: ex.sets.map((set) =>
-                  set.id === context?.tempSetId ? data : set
-                ),
+                sets: updatedSets.sort((a, b) => a.order - b.order),
               };
             }
             return ex;
@@ -212,10 +225,28 @@ export function useRemoveExerciseSet(workoutId: string) {
         if (!old) return old;
         return {
           ...old,
-          exercises: (old.exercises || []).map((ex) => ({
-            ...ex,
-            sets: ex.sets.filter((set) => set.id !== setId),
-          })),
+          exercises: (old.exercises || []).map((ex) => {
+            // Find the set being removed to get its order
+            const setToRemove = ex.sets.find((set) => set.id === setId);
+            if (!setToRemove) return ex;
+
+            // Filter out the removed set and reorder the remaining sets
+            const remainingSets = ex.sets
+              .filter((set) => set.id !== setId)
+              .map((set) => {
+                // Decrement order for sets that come after the removed set
+                if (set.order > setToRemove.order) {
+                  return { ...set, order: set.order - 1 };
+                }
+                return set;
+              })
+              .sort((a, b) => a.order - b.order);
+
+            return {
+              ...ex,
+              sets: remainingSets,
+            };
+          }),
         };
       });
 
