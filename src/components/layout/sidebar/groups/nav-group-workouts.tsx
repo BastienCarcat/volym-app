@@ -5,7 +5,7 @@ import { Loader2, Plus } from "lucide-react";
 import {
   useCreateWorkout,
   useGetWorkouts,
-} from "@/app/(root)/workouts/_hooks/use-workouts";
+} from "@/app/(root)/workouts/_hooks/workout";
 import {
   SidebarGroup,
   SidebarGroupAction,

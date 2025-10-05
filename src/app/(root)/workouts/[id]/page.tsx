@@ -1,6 +1,5 @@
-import { PageTitle } from "@/components/layout/page/page-title";
-import { getWorkoutById } from "../_actions/getWorkoutById.action";
-import { WorkoutExercisesList } from "../_components/WorkoutExercisesList";
+import { WorkoutPageClient } from "./WorkoutPageClient";
+import { getWorkoutById } from "../_actions/workout/getWorkoutById.action";
 
 export default async function WorkoutPage({
   params,
@@ -10,10 +9,5 @@ export default async function WorkoutPage({
   const { id } = await params;
   const workout = await getWorkoutById(id);
 
-  return (
-    <div>
-      <PageTitle title={workout?.name || "Workout"} />
-      <WorkoutExercisesList workoutId={id} />
-    </div>
-  );
+  return <WorkoutPageClient workoutId={id} initialWorkout={workout} />;
 }

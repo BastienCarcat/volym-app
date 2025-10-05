@@ -56,8 +56,8 @@ export interface SimpleExercise {
   secondaryMuscles: Muscle[];
 }
 
-// Legacy DTO
-interface CreateWorkoutDto {
-  name: string;
-  note?: string;
-}
+// Legacy DTO (keep for potential future use)
+// interface CreateWorkoutDto {
+//   name: string;
+//   note?: string;
+// }

@@ -278,7 +278,8 @@ reps, rest, order, type, rpe)
 
 ## Best Practices / Rules
 
-- All app must be in English (including metadata, labels, variables)
+- All app must be in English (including metadata, labels, variables and COMMENTS)
+- Don't use emojis in code or comments
 - Document global and utility functions explaining purpose and usage
 - Never use types "any" or "as" unless unavoidable
 - Always use Prisma types for entities (e.g : Workout)

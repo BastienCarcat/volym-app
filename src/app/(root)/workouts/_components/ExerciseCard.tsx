@@ -1,15 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import {
-  Dumbbell,
-  Plus,
-  Minus,
-  MoreHorizontal,
-  CircleDot,
-  CircleDashed,
-  Trash2,
-} from "lucide-react";
+import { useState, useEffect } from "react";
+import { Dumbbell, Plus, Minus, MoreHorizontal, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,75 +20,110 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { WorkoutExercise } from "../types";
+import {
+  useAddExerciseSet,
+  useUpdateExerciseSet,
+  useRemoveExerciseSet,
+} from "../_hooks/exerciseSet";
+import type { ExerciseSet } from "@/generated/prisma";
 
-interface ExerciseCardProps {
+interface Muscle {
   id: string;
   name: string;
-  image: string;
-  targetMuscles: WorkoutExercise["targetMuscles"];
-  secondaryMuscles: WorkoutExercise["secondaryMuscles"];
+  bodyPart: string;
+  group: string | null;
+}
+
+interface ExerciseCardProps {
+  workoutExerciseId: string;
+  exerciseId: string;
+  name: string;
+  image?: string;
+  targetMuscles?: Muscle[];
+  secondaryMuscles?: Muscle[];
+  sets: ExerciseSet[];
+  note?: string | null;
+  workoutId: string;
   onDelete?: () => void;
 }
 
-interface ExerciseSet {
-  id: string;
-  weight: number;
-  reps: number;
-  restSeconds: number;
-}
-
 export function ExerciseCard({
+  workoutExerciseId,
+  exerciseId,
   name,
   image,
-  targetMuscles,
-  secondaryMuscles,
+  targetMuscles = [],
+  secondaryMuscles = [],
+  sets,
+  note: initialNote,
+  workoutId,
   onDelete,
 }: ExerciseCardProps) {
-  const [sets, setSets] = useState<ExerciseSet[]>([
-    { id: "1", weight: 80, reps: 10, restSeconds: 130 },
-    { id: "2", weight: 80, reps: 10, restSeconds: 130 },
-    { id: "3", weight: 80, reps: 10, restSeconds: 130 },
-  ]);
-  const [note, setNote] = useState("");
+  const [note, setNote] = useState(initialNote || "");
 
-  const addSet = () => {
-    const newSet: ExerciseSet = {
-      id: Date.now().toString(),
-      weight: sets[sets.length - 1]?.weight || 0,
-      reps: sets[sets.length - 1]?.reps || 0,
-      restSeconds: sets[sets.length - 1]?.restSeconds || 0,
-    };
-    setSets([...sets, newSet]);
+  const { addSet } = useAddExerciseSet(workoutId);
+  const { updateSet } = useUpdateExerciseSet(workoutId);
+  const { removeSet } = useRemoveExerciseSet(workoutId);
+
+  useEffect(() => {
+    setNote(initialNote || "");
+  }, [initialNote]);
+
+  const handleAddSet = () => {
+    const newOrder = sets.length + 1;
+    const lastSet = sets[sets.length - 1];
+
+    addSet({
+      workoutExerciseId,
+      weight: lastSet?.weight || undefined,
+      reps: lastSet?.reps || undefined,
+      rest: lastSet?.rest || undefined,
+      order: newOrder,
+      type: "Normal",
+    });
   };
 
-  const removeSet = (setId: string) => {
-    setSets(sets.filter((set) => set.id !== setId));
+  const handleRemoveSet = async (setId: string) => {
+    if (sets.length <= 1) return;
+    removeSet(setId);
   };
 
-  const updateSet = (
+  const handleUpdateSet = (
     setId: string,
-    field: keyof ExerciseSet,
-    value: number
+    field: string,
+    value: number | undefined
   ) => {
-    setSets(
-      sets.map((set) => (set.id === setId ? { ...set, [field]: value } : set))
-    );
+    updateSet(setId, { [field]: value });
   };
 
-  const formatTime = (seconds: number) => {
+  const formatTime = (seconds?: number | null) => {
+    if (!seconds) return "0'00\"";
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}'${remainingSeconds.toString().padStart(2, "0")}"`;
   };
 
+  const parseTime = (timeStr: string): number => {
+    const match = timeStr.match(/(\d+)'(\d+)"/);
+    if (match) {
+      const minutes = parseInt(match[1]);
+      const seconds = parseInt(match[2]);
+      return minutes * 60 + seconds;
+    }
+    return 0;
+  };
+
   const calculateVolume = () => {
-    return sets.reduce((total, set) => total + set.weight * set.reps, 0);
+    return sets.reduce((total, set) => {
+      const weight = set.weight || 0;
+      const reps = set.reps || 0;
+      return total + weight * reps;
+    }, 0);
   };
 
   const calculateEstimatedDuration = () => {
     const totalRestTime = sets.reduce(
-      (total, set) => total + set.restSeconds,
+      (total, set) => total + (set.rest || 0),
       0
     );
     const executionTime = sets.length * 30; // Assume 30 seconds per set
@@ -166,9 +193,9 @@ export function ExerciseCard({
                 <Badge
                   key={muscle.id}
                   variant="default"
-                  className="text-xs gap-2"
+                  className="text-xs gap-1"
                 >
-                  <CircleDot />
+                  <div className="w-2 h-2 bg-current rounded-full" />
                   {muscle.name}
                 </Badge>
               ))}
@@ -176,17 +203,21 @@ export function ExerciseCard({
                 <Badge
                   key={muscle.id}
                   variant="secondary"
-                  className="text-xs gap-2"
+                  className="text-xs gap-1"
                 >
-                  <CircleDashed />
+                  <div className="w-2 h-2 border border-current rounded-full" />
                   {muscle.name}
                 </Badge>
               ))}
             </div>
             <Textarea
-              placeholder="Ajouter une note"
+              placeholder="Add a note"
               value={note}
               onChange={(e) => setNote(e.target.value)}
+              onBlur={() => {
+                // TODO: Auto-save note changes
+                console.log("Note changed:", note);
+              }}
               className="h-16 resize-none text-sm"
             />
           </div>
@@ -225,9 +256,13 @@ export function ExerciseCard({
                   <Input
                     size="small"
                     type="number"
-                    value={set.weight}
+                    value={set.weight || ""}
                     onChange={(e) =>
-                      updateSet(set.id, "weight", Number(e.target.value))
+                      handleUpdateSet(
+                        set.id,
+                        "weight",
+                        e.target.value ? Number(e.target.value) : undefined
+                      )
                     }
                     className="text-right"
                     placeholder="0"
@@ -235,9 +270,13 @@ export function ExerciseCard({
                   <Input
                     size="small"
                     type="number"
-                    value={set.reps}
+                    value={set.reps || ""}
                     onChange={(e) =>
-                      updateSet(set.id, "reps", Number(e.target.value))
+                      handleUpdateSet(
+                        set.id,
+                        "reps",
+                        e.target.value ? Number(e.target.value) : undefined
+                      )
                     }
                     className="text-right"
                     placeholder="0"
@@ -245,19 +284,10 @@ export function ExerciseCard({
                   <Input
                     size="small"
                     type="text"
-                    value={formatTime(set.restSeconds)}
+                    value={formatTime(set.rest)}
                     onChange={(e) => {
-                      const timeStr = e.target.value;
-                      const match = timeStr.match(/(\d+)'(\d+)"/);
-                      if (match) {
-                        const minutes = parseInt(match[1]);
-                        const seconds = parseInt(match[2]);
-                        updateSet(
-                          set.id,
-                          "restSeconds",
-                          minutes * 60 + seconds
-                        );
-                      }
+                      const seconds = parseTime(e.target.value);
+                      handleUpdateSet(set.id, "rest", seconds);
                     }}
                     className="text-right"
                     placeholder="0'00&quot;"
@@ -266,7 +296,7 @@ export function ExerciseCard({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={addSet}
+                      onClick={handleAddSet}
                       className="h-8 w-8 p-0 hover:bg-green-50 hover:text-green-600 transition-colors"
                     >
                       <Plus className="w-4 h-4" />
@@ -274,7 +304,7 @@ export function ExerciseCard({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => removeSet(set.id)}
+                      onClick={() => handleRemoveSet(set.id)}
                       className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 transition-colors"
                       disabled={sets.length <= 1}
                     >

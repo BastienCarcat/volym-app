@@ -1,7 +1,7 @@
 "use server";
 
 import { authActionClient, ActionError } from "@/lib/nextSafeAction/client";
-import { createWorkoutSchema } from "../_schemas/createWorkout.schema";
+import { createWorkoutSchema } from "../../_schemas/createWorkout.schema";
 import prisma from "@/lib/prisma/prisma";
 
 export const createWorkout = authActionClient
