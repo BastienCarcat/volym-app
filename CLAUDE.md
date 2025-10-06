@@ -170,6 +170,19 @@ This structure ensures:
 - Always include proper `select` or `include` to avoid N+1 queries
 - Use enums (`UserType`, `Gender`, `SetType`) to type-check
 
+#### Prisma Performance Optimization
+
+- **Connection Management**: Use a single `PrismaClient` instance to avoid connection pool exhaustion
+- **Bulk Operations**: Use `createMany()`, `updateMany()`, `findMany()` for batch operations
+- **N+1 Query Prevention**:
+  - Use `include` for nested reads
+  - Use `in` filter for related data fetching
+  - Set `relationLoadStrategy: "join"` for single-query performance
+  - Leverage Prisma's built-in dataloader for automatic query batching
+- **Query Debugging**: Use Prisma Optimize, log query events, and monitor execution times
+- **Avoid Over-fetching**: Use proper `select` to fetch only needed fields
+- **Batch Large Operations**: Process large datasets in chunks (e.g., 1,000 records at a time)
+
 ---
 
 ## Server Actions

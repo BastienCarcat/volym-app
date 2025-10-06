@@ -17,7 +17,10 @@ interface WorkoutPageClientProps {
   initialWorkout: WorkoutWithRelations;
 }
 
-export function WorkoutPageClient({ workoutId, initialWorkout }: WorkoutPageClientProps) {
+export function WorkoutPageClient({
+  workoutId,
+  initialWorkout,
+}: WorkoutPageClientProps) {
   const queryClient = useQueryClient();
   const { updateWorkout, isUpdating } = useUpdateWorkout(workoutId);
 
@@ -34,8 +37,8 @@ export function WorkoutPageClient({ workoutId, initialWorkout }: WorkoutPageClie
 
   return (
     <div>
-      <PageTitle 
-        title={initialWorkout.name} 
+      <PageTitle
+        title={initialWorkout.name}
         description={initialWorkout.note || ""}
         onTitleChange={handleTitleChange}
         onDescriptionChange={handleDescriptionChange}

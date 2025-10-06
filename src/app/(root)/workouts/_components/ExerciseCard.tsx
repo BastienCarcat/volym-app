@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { DurationInput } from "@/components/ui/duration-input";
 import {
   Card,
   CardHeader,
@@ -69,8 +70,12 @@ export function ExerciseCard({
   }, [initialNote]);
 
   const handleAddSet = (insertAfterIndex?: number) => {
-    const newOrder = insertAfterIndex !== undefined ? insertAfterIndex + 2 : sets.length + 1;
-    const referenceSet = insertAfterIndex !== undefined ? sets[insertAfterIndex] : sets[sets.length - 1];
+    const newOrder =
+      insertAfterIndex !== undefined ? insertAfterIndex + 2 : sets.length + 1;
+    const referenceSet =
+      insertAfterIndex !== undefined
+        ? sets[insertAfterIndex]
+        : sets[sets.length - 1];
 
     addSet({
       workoutExerciseId,
@@ -93,23 +98,6 @@ export function ExerciseCard({
     value: number | undefined
   ) => {
     updateSet(setId, { [field]: value });
-  };
-
-  const formatTime = (seconds?: number | null) => {
-    if (!seconds) return "0'00\"";
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}'${remainingSeconds.toString().padStart(2, "0")}"`;
-  };
-
-  const parseTime = (timeStr: string): number => {
-    const match = timeStr.match(/(\d+)'(\d+)"/);
-    if (match) {
-      const minutes = parseInt(match[1]);
-      const seconds = parseInt(match[2]);
-      return minutes * 60 + seconds;
-    }
-    return 0;
   };
 
   const calculateVolume = () => {
@@ -265,6 +253,7 @@ export function ExerciseCard({
                     }
                     className="text-right"
                     placeholder="0"
+                    min={0}
                   />
                   <Input
                     size="small"
@@ -279,17 +268,18 @@ export function ExerciseCard({
                     }
                     className="text-right"
                     placeholder="0"
+                    min={0}
                   />
-                  <Input
-                    size="small"
-                    type="text"
-                    value={formatTime(set.rest)}
-                    onChange={(e) => {
-                      const seconds = parseTime(e.target.value);
-                      handleUpdateSet(set.id, "rest", seconds);
+                  <DurationInput
+                    inputProps={{
+                      size: "small",
                     }}
+                    value={set.rest || undefined}
+                    onChange={(seconds) =>
+                      handleUpdateSet(set.id, "rest", seconds)
+                    }
+                    placeholder="0:00"
                     className="text-right"
-                    placeholder="0'00&quot;"
                   />
                   <div>
                     <Button
