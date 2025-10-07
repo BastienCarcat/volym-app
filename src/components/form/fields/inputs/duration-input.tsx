@@ -1,21 +1,18 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Input, InputProps } from "@/components/ui/input";
-import { 
-  cn, 
-  formatDigitsToTimeDisplay, 
-  parseDigitsToSeconds, 
-  secondsToDigitsString 
+import {
+  cn,
+  formatDigitsToTimeDisplay,
+  parseDigitsToSeconds,
+  secondsToDigitsString,
 } from "@/lib/utils";
+import { Input, InputProps } from "./input";
 
-interface DurationInputProps {
-  value?: number; // durée en secondes
+export interface DurationInputProps
+  extends Omit<InputProps, "onChange" | "value"> {
+  value?: number;
   onChange?: (seconds: number) => void;
-  placeholder?: string;
-  className?: string;
-  disabled?: boolean;
-  inputProps?: Omit<InputProps, "value" | "onChange">;
 }
 
 export function DurationInput({
@@ -23,25 +20,27 @@ export function DurationInput({
   onChange,
   placeholder = "0:00",
   className,
-  disabled = false,
-  inputProps,
+  ...props
 }: DurationInputProps) {
   const [digits, setDigits] = useState<string>("");
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Debounced function to call onChange
-  const debouncedOnChange = useCallback((seconds: number) => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-    
-    debounceTimerRef.current = setTimeout(() => {
-      if (onChange) {
-        onChange(seconds);
+  const debouncedOnChange = useCallback(
+    (seconds: number) => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
       }
-    }, 1000);
-  }, [onChange]);
+
+      debounceTimerRef.current = setTimeout(() => {
+        if (onChange) {
+          onChange(seconds);
+        }
+      }, 1000);
+    },
+    [onChange]
+  );
 
   // Cleanup timer on unmount
   useEffect(() => {
@@ -51,7 +50,6 @@ export function DurationInput({
       }
     };
   }, []);
-
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     // Handle deletion
@@ -117,19 +115,17 @@ export function DurationInput({
     }
   });
 
-  const displayValue = formatDigitsToTimeDisplay(digits);
-
   return (
     <Input
       ref={inputRef}
       type="text"
       inputMode="numeric"
-      value={displayValue}
+      value={formatDigitsToTimeDisplay(digits)}
+      onBeforeInput={(e) => e.preventDefault()}
       onKeyDown={handleKeyDown}
       placeholder={placeholder}
-      disabled={disabled}
-      {...inputProps}
       className={cn("font-mono text-center tabular-nums", className)}
+      {...props}
     />
   );
 }

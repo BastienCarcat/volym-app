@@ -4,6 +4,7 @@ import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { addWorkoutExercise } from "../../_actions/workoutExercise/addWorkoutExercise.action";
 import { removeWorkoutExercise } from "../../_actions/workoutExercise/removeWorkoutExercise.action";
 import { reorderWorkoutExercises } from "../../_actions/workoutExercise/reorderWorkoutExercises.action";
+import { updateWorkoutExercise } from "../../_actions/workoutExercise/updateWorkoutExercise.action";
 import { resolveActionResult } from "@/lib/utils";
 
 interface WorkoutData {
@@ -17,6 +18,7 @@ interface ExerciseData {
   id: string;
   exerciseId: string;
   order: number;
+  note?: string | null;
   sets: SetData[];
 }
 
@@ -197,5 +199,41 @@ export function useReorderWorkoutExercises(workoutId: string) {
   return {
     reorderExercises: mutate,
     isReordering: isPending,
+  };
+}
+
+export function useUpdateWorkoutExercise(workoutId: string) {
+  const queryClient = useQueryClient();
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: async (exerciseData: {
+      id: string;
+      note?: string;
+      order?: number;
+    }) => {
+      return await resolveActionResult<ExerciseData>(
+        updateWorkoutExercise(exerciseData)
+      );
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData<WorkoutData>(["workout", workoutId], (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          exercises: (old.exercises || []).map((ex) =>
+            ex.id === data.id ? { ...ex, ...data } : ex
+          ),
+        };
+      });
+    },
+    onError: (error) => {
+      console.error("Failed to update workout exercise:", error);
+      queryClient.invalidateQueries({ queryKey: ["workout", workoutId] });
+    },
+  });
+
+  return {
+    updateWorkoutExercise: mutate,
+    isUpdating: isPending,
   };
 }

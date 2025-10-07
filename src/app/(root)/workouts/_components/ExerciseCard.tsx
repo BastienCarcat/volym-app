@@ -1,13 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Dumbbell, Plus, Minus, MoreHorizontal, Trash2 } from "lucide-react";
+import { Dumbbell, MoreHorizontal, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Textarea } from "@/components/form/fields/inputs/textarea";
 import { Badge } from "@/components/ui/badge";
-import { DurationInput } from "@/components/ui/duration-input";
 import {
   Card,
   CardHeader,
@@ -26,6 +23,13 @@ import {
   useUpdateExerciseSet,
   useRemoveExerciseSet,
 } from "../_hooks/exerciseSet";
+import { useUpdateWorkoutExercise } from "../_hooks/workoutExercise";
+import { useValidatedAutoSave } from "../../../../hooks/useValidatedAutoSave";
+import {
+  workoutNoteSchema,
+  type ExerciseSetFormData,
+} from "../_schemas/exerciseSet.schema";
+import { ExerciseSetRow } from "./Exercise/ExerciseSet/ExerciseSetRow";
 import type { ExerciseSet } from "@/generated/prisma";
 
 interface Muscle {
@@ -59,15 +63,19 @@ export function ExerciseCard({
   workoutId,
   onDelete,
 }: ExerciseCardProps) {
-  const [note, setNote] = useState(initialNote || "");
-
   const { addSet } = useAddExerciseSet(workoutId);
   const { updateSet } = useUpdateExerciseSet(workoutId);
   const { removeSet } = useRemoveExerciseSet(workoutId);
+  const { updateWorkoutExercise } = useUpdateWorkoutExercise(workoutId);
 
-  useEffect(() => {
-    setNote(initialNote || "");
-  }, [initialNote]);
+  const noteAutoSave = useValidatedAutoSave({
+    initialValue: initialNote || "",
+    schema: workoutNoteSchema,
+    onSave: (validNote) => {
+      updateWorkoutExercise({ id: workoutExerciseId, note: validNote });
+    },
+    delay: 1000,
+  });
 
   const handleAddSet = (insertAfterIndex?: number) => {
     const newOrder =
@@ -94,10 +102,9 @@ export function ExerciseCard({
 
   const handleUpdateSet = (
     setId: string,
-    field: string,
-    value: number | undefined
+    updates: Partial<ExerciseSetFormData>
   ) => {
-    updateSet(setId, { [field]: value });
+    updateSet(setId, updates);
   };
 
   const calculateVolume = () => {
@@ -197,16 +204,17 @@ export function ExerciseCard({
                 </Badge>
               ))}
             </div>
-            <Textarea
-              placeholder="Add a note"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              onBlur={() => {
-                // TODO: Auto-save note changes
-                console.log("Note changed:", note);
-              }}
-              className="h-16 resize-none text-sm"
-            />
+            <div>
+              <Textarea
+                placeholder="Add a note"
+                value={noteAutoSave.value}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                  noteAutoSave.setValue(e.target.value)
+                }
+                className="h-16 resize-none text-sm"
+                error={noteAutoSave.error || undefined}
+              />
+            </div>
           </div>
         </div>
       </CardHeader>
@@ -233,74 +241,15 @@ export function ExerciseCard({
 
               {/* Table Rows */}
               {sets.map((set, index) => (
-                <div key={set.id} className="contents">
-                  <Badge
-                    variant="outline"
-                    className="w-6 h-6 rounded-full p-0 flex items-center justify-center text-xs"
-                  >
-                    {index + 1}
-                  </Badge>
-                  <Input
-                    size="small"
-                    type="number"
-                    value={set.weight || ""}
-                    onChange={(e) =>
-                      handleUpdateSet(
-                        set.id,
-                        "weight",
-                        e.target.value ? Number(e.target.value) : undefined
-                      )
-                    }
-                    className="text-right"
-                    placeholder="0"
-                    min={0}
-                  />
-                  <Input
-                    size="small"
-                    type="number"
-                    value={set.reps || ""}
-                    onChange={(e) =>
-                      handleUpdateSet(
-                        set.id,
-                        "reps",
-                        e.target.value ? Number(e.target.value) : undefined
-                      )
-                    }
-                    className="text-right"
-                    placeholder="0"
-                    min={0}
-                  />
-                  <DurationInput
-                    inputProps={{
-                      size: "small",
-                    }}
-                    value={set.rest || undefined}
-                    onChange={(seconds) =>
-                      handleUpdateSet(set.id, "rest", seconds)
-                    }
-                    placeholder="0:00"
-                    className="text-right"
-                  />
-                  <div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleAddSet(index)}
-                      className="h-8 w-8 p-0 hover:bg-green-50 hover:text-green-600 transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRemoveSet(set.id)}
-                      className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 transition-colors"
-                      disabled={sets.length <= 1}
-                    >
-                      <Minus className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
+                <ExerciseSetRow
+                  key={set.id}
+                  set={set}
+                  index={index}
+                  onUpdate={handleUpdateSet}
+                  onAddSet={handleAddSet}
+                  onRemoveSet={handleRemoveSet}
+                  canRemove={sets.length > 1}
+                />
               ))}
             </div>
           </div>

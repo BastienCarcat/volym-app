@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/cards";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/form";
 import { signup } from "../_actions/signup.action";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useHookFormAction } from "@next-safe-action/adapter-react-hook-form/hooks";
@@ -20,7 +20,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
+} from "@/components/form/form";
 import { toast } from "sonner";
 
 export default function SignUpForm() {

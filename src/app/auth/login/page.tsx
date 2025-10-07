@@ -8,7 +8,6 @@ import {
   CardTitle,
 } from "@/components/ui/cards";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useHookFormAction } from "@next-safe-action/adapter-react-hook-form/hooks";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -20,9 +19,10 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
+} from "@/components/form/form";
 import { loginSchema } from "../_schemas/login.schema";
 import { login } from "../_actions/login.action";
+import { Input } from "@/components/form";
 
 export default function LoginPage() {
   const {
