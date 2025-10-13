@@ -1,10 +1,10 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAction } from "next-safe-action/hooks";
 import { updateWorkout } from "../../_actions/workout/updateWorkout.action";
 import { createWorkout } from "../../_actions/workout/createWorkout.action";
 import { getWorkouts } from "../../_actions/workout/getWorkouts.action";
+import { getWorkoutById } from "../../_actions/workout/getWorkoutById.action";
 import { queryKeys } from "../../../../../lib/tanstack/query-keys";
 import type {
   MutationOptions,
@@ -14,7 +14,7 @@ import { Workout } from "@/generated/prisma";
 import { resolveActionResult } from "@/lib/utils";
 import { z } from "zod";
 import { createWorkoutSchema } from "../../_schemas/createWorkout.schema";
-import { useCallback, useRef } from "react";
+import { useOptimisticMutation } from "@/hooks/use-optimistic-mutation";
 
 type CreateWorkoutDto = z.infer<typeof createWorkoutSchema>;
 
@@ -41,63 +41,21 @@ interface SetData {
 }
 
 export function useUpdateWorkout(workoutId: string) {
-  const queryClient = useQueryClient();
-
-  const { execute, isExecuting } = useAction(updateWorkout, {
-    onSuccess: ({ data }) => {
-      queryClient.setQueryData(["workout", workoutId], data);
+  return useOptimisticMutation<
+    WorkoutData,
+    { name?: string; note?: string },
+    WorkoutData
+  >({
+    mutationFn: async (data) => {
+      return resolveActionResult(updateWorkout({ id: workoutId, ...data }));
     },
-    onError: (error) => {
-      console.error("Failed to update workout:", error);
-      // Revert optimistic update
-      queryClient.invalidateQueries({ queryKey: ["workout", workoutId] });
+    queryKey: ["workout", workoutId],
+    getOptimisticUpdate: (oldData, variables) => {
+      if (!oldData) return oldData;
+      return { ...oldData, ...variables };
     },
+    getSuccessUpdate: (_oldData, newData) => newData,
   });
-
-  const updateTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
-
-  const updateWorkoutOptimistic = useCallback(
-    (data: { name?: string; note?: string }) => {
-      // Clear previous timeout
-      if (updateTimeoutRef.current) {
-        clearTimeout(updateTimeoutRef.current);
-      }
-
-      // Optimistic update
-      queryClient.setQueryData(
-        ["workout", workoutId],
-        (old: WorkoutData | undefined) => {
-          if (!old) return old;
-          return { ...old, ...data };
-        }
-      );
-
-      // Debounced server update
-      updateTimeoutRef.current = setTimeout(() => {
-        if (data.name !== undefined || data.note !== undefined) {
-          const updatePayload: { id: string; name?: string; note?: string } = {
-            id: workoutId,
-          };
-
-          if (data.name !== undefined) {
-            updatePayload.name = data.name;
-          }
-
-          if (data.note !== undefined) {
-            updatePayload.note = data.note;
-          }
-
-          execute(updatePayload);
-        }
-      }, 500);
-    },
-    [workoutId, queryClient, execute]
-  );
-
-  return {
-    updateWorkout: updateWorkoutOptimistic,
-    isUpdating: isExecuting,
-  };
 }
 
 export function useGetWorkouts(options?: QueryOptions<Workout[]>) {

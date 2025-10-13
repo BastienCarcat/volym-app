@@ -51,7 +51,7 @@ export const addWorkoutExercise = authActionClient
         weight: null,
         reps: null,
         rest: null,
-        order: 0,
+        order: 1,
         type: "Normal",
         rpe: null,
       },

@@ -22,7 +22,8 @@ export function WorkoutPageClient({
   initialWorkout,
 }: WorkoutPageClientProps) {
   const queryClient = useQueryClient();
-  const { updateWorkout, isUpdating } = useUpdateWorkout(workoutId);
+  const { mutate: updateWorkout, isPending: isUpdating } =
+    useUpdateWorkout(workoutId);
 
   // Initialize the query cache with the initial data
   queryClient.setQueryData(["workout", workoutId], initialWorkout);

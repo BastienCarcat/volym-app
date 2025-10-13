@@ -6,11 +6,11 @@ import { z } from "zod";
 
 const updateExerciseSetSchema = z.object({
   id: z.string(),
-  weight: z.number().optional(),
-  reps: z.number().optional(),
-  rest: z.number().optional(),
+  weight: z.number().nullable().optional(),
+  reps: z.number().nullable().optional(),
+  rest: z.number().nullable().optional(),
   type: z.enum(["WarmUp", "Normal", "DropsSet", "Failure"]).optional(),
-  rpe: z.number().min(1).max(10).optional(),
+  rpe: z.number().min(1).max(10).nullable().optional(),
 });
 
 export const updateExerciseSet = authActionClient

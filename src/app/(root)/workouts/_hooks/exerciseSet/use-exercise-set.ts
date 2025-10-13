@@ -1,17 +1,20 @@
 "use client";
 
-import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { addExerciseSet } from "../../_actions/exerciseSet/addExerciseSet.action";
 import { updateExerciseSet } from "../../_actions/exerciseSet/updateExerciseSet.action";
 import { removeExerciseSet } from "../../_actions/exerciseSet/removeExerciseSet.action";
-import { useCallback, useRef } from "react";
 import { resolveActionResult } from "@/lib/utils";
+import { useOptimisticMutation } from "@/hooks/use-optimistic-mutation";
+import { produce } from "immer";
+import { v4 as uuid } from "uuid";
+import { useMutationQueue } from "@/stores/mutation-queue.store";
+import { useCallback } from "react";
 
 interface WorkoutData {
   id: string;
   name: string;
   note?: string | null;
-  exercises?: ExerciseData[];
+  exercises: ExerciseData[];
 }
 
 interface ExerciseData {
@@ -23,6 +26,7 @@ interface ExerciseData {
 
 interface SetData {
   id: string;
+  workoutExerciseId: string;
   weight?: number | null;
   reps?: number | null;
   rest?: number | null;
@@ -32,10 +36,10 @@ interface SetData {
 }
 
 export function useAddExerciseSet(workoutId: string) {
-  const queryClient = useQueryClient();
-
-  const { mutate, isPending } = useMutation({
-    mutationFn: async (setData: {
+  const queue = useMutationQueue();
+  return useOptimisticMutation<
+    WorkoutData,
+    {
       workoutExerciseId: string;
       order: number;
       weight?: number;
@@ -43,228 +47,190 @@ export function useAddExerciseSet(workoutId: string) {
       rest?: number;
       type?: "WarmUp" | "Normal" | "DropsSet" | "Failure";
       rpe?: number;
-    }) => {
-      return await resolveActionResult<SetData>(addExerciseSet(setData));
     },
-    onMutate: async (setData) => {
-      const previousWorkout = queryClient.getQueryData<WorkoutData>([
-        "workout",
-        workoutId,
-      ]);
+    SetData
+  >({
+    mutationFn: (setData) => resolveActionResult(addExerciseSet(setData)),
+    queryKey: ["workout", workoutId],
+    getOptimisticUpdate: (oldData, variables) => {
+      if (!oldData) return oldData;
 
-      const tempSet = {
-        id: `temp-set-${Date.now()}`,
-        weight: setData.weight || null,
-        reps: setData.reps || null,
-        rest: setData.rest || null,
-        order: setData.order,
-        type: setData.type || "Normal",
-        rpe: setData.rpe || null,
-      };
+      const tempId = `temp-set-${uuid()}`;
+      queue.registerTempId(tempId);
 
-      queryClient.setQueryData<WorkoutData>(["workout", workoutId], (old) => {
-        if (!old) return old;
-        return {
-          ...old,
-          exercises: (old.exercises || []).map((ex) => {
-            if (ex.id === setData.workoutExerciseId) {
-              // Update the order of existing sets that come after the insertion point
-              const updatedSets = ex.sets.map((set) => {
-                if (set.order >= setData.order) {
-                  return { ...set, order: set.order + 1 };
-                }
-                return set;
-              });
-              
-              // Add the new set and sort by order
-              const newSets = [...updatedSets, tempSet].sort((a, b) => a.order - b.order);
-              
-              return {
-                ...ex,
-                sets: newSets,
-              };
-            }
-            return ex;
-          }),
+      const newData = produce(oldData, (draft) => {
+        const exercise = draft.exercises.find(
+          (ex) => ex.id === variables.workoutExerciseId
+        );
+        if (!exercise) return;
+
+        // Décaler les ordres des sets existants
+        exercise.sets.forEach((set) => {
+          if (set.order >= variables.order) set.order += 1;
+        });
+
+        // Ajouter le set temporaire
+        const tempSet: SetData = {
+          id: tempId,
+          workoutExerciseId: exercise.id,
+          weight: variables.weight ?? null,
+          reps: variables.reps ?? null,
+          rest: variables.rest ?? null,
+          order: variables.order,
+          type: variables.type ?? "Normal",
+          rpe: variables.rpe ?? null,
         };
+        exercise.sets.push(tempSet);
+
+        // Trier par ordre
+        exercise.sets.sort((a, b) => a.order - b.order);
       });
 
-      return { previousWorkout, tempSetId: tempSet.id };
+      return { newData, context: { tempId } };
     },
-    onError: (error, _variables, context) => {
-      console.error("Failed to add set:", error);
-      if (context?.previousWorkout) {
-        queryClient.setQueryData(
-          ["workout", workoutId],
-          context.previousWorkout
+    getSuccessUpdate: (oldData, serverResult, variables, context) => {
+      if (!oldData || !context?.tempId) return oldData;
+
+      queue.resolveTempId(context.tempId, serverResult.id);
+
+      return produce(oldData, (draft) => {
+        const exercise = draft.exercises.find(
+          (ex) => ex.id === variables.workoutExerciseId
         );
-      }
-    },
-    onSuccess: (data, variables, context) => {
-      queryClient.setQueryData<WorkoutData>(["workout", workoutId], (old) => {
-        if (!old) return old;
-        return {
-          ...old,
-          exercises: (old.exercises || []).map((ex) => {
-            if (ex.id === variables.workoutExerciseId) {
-              const updatedSets = ex.sets.map((set) =>
-                set.id === context?.tempSetId ? data : set
-              );
-              // Sort by order to maintain correct sequence
-              return {
-                ...ex,
-                sets: updatedSets.sort((a, b) => a.order - b.order),
-              };
-            }
-            return ex;
-          }),
-        };
+        if (!exercise) return;
+
+        exercise.sets = exercise.sets.map((set) =>
+          set.id.startsWith("temp-set-") ? serverResult : set
+        );
       });
     },
   });
-
-  return {
-    addSet: mutate,
-    isAdding: isPending,
-  };
 }
 
 export function useUpdateExerciseSet(workoutId: string) {
-  const queryClient = useQueryClient();
-
-  const { mutate, isPending } = useMutation({
-    mutationFn: async (setData: {
+  const queue = useMutationQueue();
+  const { mutate: baseMutate, ...others } = useOptimisticMutation<
+    WorkoutData,
+    {
       id: string;
-      weight?: number;
-      reps?: number;
-      rest?: number;
+      weight?: number | null;
+      reps?: number | null;
+      rest?: number | null;
       type?: "WarmUp" | "Normal" | "DropsSet" | "Failure";
-      rpe?: number;
-    }) => {
-      return await resolveActionResult<SetData>(updateExerciseSet(setData));
+      rpe?: number | null;
     },
-    onSuccess: (data) => {
-      queryClient.setQueryData<WorkoutData>(["workout", workoutId], (old) => {
-        if (!old) return old;
-        return {
-          ...old,
-          exercises: (old.exercises || []).map((ex) => ({
-            ...ex,
-            sets: ex.sets.map((set) => (set.id === data.id ? data : set)),
-          })),
-        };
+    SetData
+  >({
+    mutationFn: async (setData) => {
+      // Transform undefined → null pour Prisma
+      const transformedData = {
+        id: setData.id,
+        weight: setData.weight === undefined ? null : setData.weight,
+        reps: setData.reps === undefined ? null : setData.reps,
+        rest: setData.rest === undefined ? null : setData.rest,
+        rpe: setData.rpe === undefined ? null : setData.rpe,
+        type: setData.type,
+      };
+      return resolveActionResult(updateExerciseSet(transformedData));
+    },
+    queryKey: ["workout", workoutId],
+    getOptimisticUpdate: (oldData, variables) => {
+      if (!oldData) return oldData;
+
+      const newData = produce(oldData, (draft) => {
+        draft.exercises.forEach((ex) => {
+          const set = ex.sets.find((s) => s.id === variables.id);
+          if (!set) return;
+
+          if (variables.weight !== undefined) set.weight = variables.weight;
+          if (variables.reps !== undefined) set.reps = variables.reps;
+          if (variables.rest !== undefined) set.rest = variables.rest;
+          if (variables.type !== undefined) set.type = variables.type;
+          if (variables.rpe !== undefined) set.rpe = variables.rpe;
+        });
       });
+
+      return { newData };
     },
-    onError: (error) => {
-      console.error("Failed to update set:", error);
-      queryClient.invalidateQueries({ queryKey: ["workout", workoutId] });
+    getSuccessUpdate: (oldData, serverResult, params) => {
+      if (!oldData) return oldData;
+
+      return produce(oldData, (draft) => {
+        draft.exercises.forEach((ex) => {
+          const index = ex.sets.findIndex((s) => s.id === params.id);
+          if (index !== -1) {
+            ex.sets[index] = serverResult;
+          }
+        });
+      });
     },
   });
 
-  const updateTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const mutate = useCallback(
+    // TODO: Better typing
+    (variables: {
+      id: string;
+      weight?: number | null;
+      reps?: number | null;
+      rest?: number | null;
+      type?: "WarmUp" | "Normal" | "DropsSet" | "Failure";
+      rpe?: number | null;
+    }) => {
+      const { id } = variables;
+      console.log("Id of update mutation :>> ", id, variables);
+      if (id.startsWith("temp-set-")) {
+        const realId = queue.getRealId(id);
 
-  const updateSetOptimistic = useCallback(
-    (
-      setId: string,
-      data: {
-        weight?: number;
-        reps?: number;
-        rest?: number;
-        type?: "WarmUp" | "Normal" | "DropsSet" | "Failure";
-        rpe?: number;
+        if (!realId) {
+          queue.enqueue({
+            tempId: id,
+            type: "update",
+            variables,
+            execute: (resolvedId) =>
+              baseMutate({ ...variables, id: resolvedId }),
+          });
+          return;
+        }
+
+        variables.id = realId;
       }
-    ) => {
-      // Clear previous timeout
-      if (updateTimeoutRef.current) {
-        clearTimeout(updateTimeoutRef.current);
-      }
 
-      // Optimistic update
-      queryClient.setQueryData<WorkoutData>(["workout", workoutId], (old) => {
-        if (!old) return old;
-        return {
-          ...old,
-          exercises: (old.exercises || []).map((ex) => ({
-            ...ex,
-            sets: ex.sets.map((set) =>
-              set.id === setId ? { ...set, ...data } : set
-            ),
-          })),
-        };
-      });
-
-      // Debounced server update
-      updateTimeoutRef.current = setTimeout(() => {
-        mutate({ id: setId, ...data });
-      }, 300);
+      baseMutate(variables);
     },
-    [workoutId, queryClient, mutate]
+    [queue, baseMutate]
   );
-
-  return {
-    updateSet: updateSetOptimistic,
-    isUpdating: isPending,
-  };
+  return { mutate, ...others };
 }
 
 export function useRemoveExerciseSet(workoutId: string) {
-  const queryClient = useQueryClient();
+  const queue = useMutationQueue();
+  return useOptimisticMutation<WorkoutData, string, void>({
+    mutationFn: async (setId) =>
+      resolveActionResult(removeExerciseSet({ id: setId })),
+    queryKey: ["workout", workoutId],
+    getOptimisticUpdate: (oldData, setId) => {
+      if (!oldData) return oldData;
 
-  const { mutate, isPending } = useMutation({
-    mutationFn: async (setId: string) => {
-      await resolveActionResult(removeExerciseSet({ id: setId }));
-      return setId;
-    },
-    onMutate: async (setId) => {
-      const previousWorkout = queryClient.getQueryData<WorkoutData>([
-        "workout",
-        workoutId,
-      ]);
-
-      queryClient.setQueryData<WorkoutData>(["workout", workoutId], (old) => {
-        if (!old) return old;
-        return {
-          ...old,
-          exercises: (old.exercises || []).map((ex) => {
-            // Find the set being removed to get its order
-            const setToRemove = ex.sets.find((set) => set.id === setId);
-            if (!setToRemove) return ex;
-
-            // Filter out the removed set and reorder the remaining sets
-            const remainingSets = ex.sets
-              .filter((set) => set.id !== setId)
-              .map((set) => {
-                // Decrement order for sets that come after the removed set
-                if (set.order > setToRemove.order) {
-                  return { ...set, order: set.order - 1 };
-                }
-                return set;
-              })
-              .sort((a, b) => a.order - b.order);
-
-            return {
-              ...ex,
-              sets: remainingSets,
-            };
-          }),
-        };
-      });
-
-      return { previousWorkout };
-    },
-    onError: (error, _variables, context) => {
-      console.error("Failed to remove set:", error);
-      if (context?.previousWorkout) {
-        queryClient.setQueryData(
-          ["workout", workoutId],
-          context.previousWorkout
-        );
+      if (setId.startsWith("temp-set-")) {
+        queue.markDeleted(setId);
+        queue.removePendingByTempId(setId);
       }
+
+      const newData = produce(oldData, (draft) => {
+        draft.exercises.forEach((ex) => {
+          const setToRemove = ex.sets.find((s) => s.id === setId);
+          if (!setToRemove) return;
+
+          // Supprimer le set
+          ex.sets = ex.sets
+            .filter((s) => s.id !== setId)
+            .map((s) =>
+              s.order > setToRemove.order ? { ...s, order: s.order - 1 } : s
+            )
+            .sort((a, b) => a.order - b.order);
+        });
+      });
+      return { newData };
     },
   });
-
-  return {
-    removeSet: mutate,
-    isRemoving: isPending,
-  };
 }

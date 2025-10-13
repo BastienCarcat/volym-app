@@ -1,6 +1,6 @@
 "use client";
 
-import { Dumbbell, MoreHorizontal, Trash2 } from "lucide-react";
+import { Dumbbell, Loader2, MoreHorizontal, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/form/fields/inputs/textarea";
@@ -18,19 +18,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  useAddExerciseSet,
-  useUpdateExerciseSet,
-  useRemoveExerciseSet,
-} from "../_hooks/exerciseSet";
+import { useAddExerciseSet, useRemoveExerciseSet } from "../_hooks/exerciseSet";
 import { useUpdateWorkoutExercise } from "../_hooks/workoutExercise";
-import { useValidatedAutoSave } from "../../../../hooks/useValidatedAutoSave";
-import {
-  workoutNoteSchema,
-  type ExerciseSetFormData,
-} from "../_schemas/exerciseSet.schema";
-import { ExerciseSetRow } from "./Exercise/ExerciseSet/ExerciseSetRow";
 import type { ExerciseSet } from "@/generated/prisma";
+import { useForm } from "react-hook-form";
+import { FormControl, Form, FormField, FormItem } from "@/components/form";
+import { useAutoSaveForm } from "@/hooks/use-auto-save-form";
+import z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useCallback } from "react";
+import { ExerciseSetRow } from "./Exercise/ExerciseSet/ExerciseSetRow";
 
 interface Muscle {
   id: string;
@@ -47,10 +44,14 @@ interface ExerciseCardProps {
   targetMuscles?: Muscle[];
   secondaryMuscles?: Muscle[];
   sets: ExerciseSet[];
-  note?: string | null;
+  note?: string;
   workoutId: string;
   onDelete?: () => void;
 }
+
+type FormValues = {
+  note: string;
+};
 
 export function ExerciseCard({
   workoutExerciseId,
@@ -59,37 +60,43 @@ export function ExerciseCard({
   targetMuscles = [],
   secondaryMuscles = [],
   sets,
-  note: initialNote,
+  note = "",
   workoutId,
   onDelete,
 }: ExerciseCardProps) {
-  const { addSet } = useAddExerciseSet(workoutId);
-  const { updateSet } = useUpdateExerciseSet(workoutId);
-  const { removeSet } = useRemoveExerciseSet(workoutId);
-  const { updateWorkoutExercise } = useUpdateWorkoutExercise(workoutId);
+  const { mutate: addSet } = useAddExerciseSet(workoutId);
+  const { mutate: removeSet } = useRemoveExerciseSet(workoutId);
+  const { mutate: updateWorkoutExercise } = useUpdateWorkoutExercise(workoutId);
 
-  const noteAutoSave = useValidatedAutoSave({
-    initialValue: initialNote || "",
-    schema: workoutNoteSchema,
-    onSave: (validNote) => {
-      updateWorkoutExercise({ id: workoutExerciseId, note: validNote });
+  const form = useForm<FormValues>({
+    resolver: zodResolver(z.object({ note: z.string().min(5, "ko") })),
+    defaultValues: { note },
+  });
+
+  const handleSave = useCallback(
+    (vals: Partial<FormValues>) => {
+      if (vals.note !== undefined) {
+        updateWorkoutExercise({ id: workoutExerciseId, note: vals.note });
+      }
     },
-    delay: 1000,
+    [updateWorkoutExercise, workoutExerciseId]
+  );
+
+  useAutoSaveForm({
+    form,
+    names: ["note"],
+    onSave: handleSave,
   });
 
   const handleAddSet = (insertAfterIndex?: number) => {
     const newOrder =
       insertAfterIndex !== undefined ? insertAfterIndex + 2 : sets.length + 1;
-    const referenceSet =
-      insertAfterIndex !== undefined
-        ? sets[insertAfterIndex]
-        : sets[sets.length - 1];
 
     addSet({
       workoutExerciseId,
-      weight: referenceSet?.weight || undefined,
-      reps: referenceSet?.reps || undefined,
-      rest: referenceSet?.rest || undefined,
+      weight: undefined,
+      reps: undefined,
+      rest: undefined,
       order: newOrder,
       type: "Normal",
     });
@@ -98,13 +105,6 @@ export function ExerciseCard({
   const handleRemoveSet = async (setId: string) => {
     if (sets.length <= 1) return;
     removeSet(setId);
-  };
-
-  const handleUpdateSet = (
-    setId: string,
-    updates: Partial<ExerciseSetFormData>
-  ) => {
-    updateSet(setId, updates);
   };
 
   const calculateVolume = () => {
@@ -138,7 +138,7 @@ export function ExerciseCard({
                   width={120}
                   height={120}
                   className="w-full h-full object-cover"
-                  onError={(e) => {
+                  onError={(e: any) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = "none";
                     const parent = target.parentElement;
@@ -205,15 +205,23 @@ export function ExerciseCard({
               ))}
             </div>
             <div>
-              <Textarea
-                placeholder="Add a note"
-                value={noteAutoSave.value}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                  noteAutoSave.setValue(e.target.value)
-                }
-                className="h-16 resize-none text-sm"
-                error={noteAutoSave.error || undefined}
-              />
+              <Form {...form}>
+                <FormField
+                  control={form.control}
+                  name="note"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Add a note"
+                          className="h-16 resize-none text-sm"
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </Form>
             </div>
           </div>
         </div>
@@ -239,16 +247,15 @@ export function ExerciseCard({
                 <div></div>
               </div>
 
-              {/* Table Rows */}
               {sets.map((set, index) => (
                 <ExerciseSetRow
                   key={set.id}
                   set={set}
                   index={index}
-                  onUpdate={handleUpdateSet}
                   onAddSet={handleAddSet}
                   onRemoveSet={handleRemoveSet}
                   canRemove={sets.length > 1}
+                  workoutId={workoutId}
                 />
               ))}
             </div>

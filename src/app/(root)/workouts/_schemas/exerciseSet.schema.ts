@@ -5,25 +5,32 @@ export const exerciseSetFieldSchemas = {
     .number()
     .min(0, "Weight must be positive")
     .max(9999, "Weight cannot exceed 9999Kg")
-    .optional(),
+    .optional()
+    .nullable(),
   reps: z
     .number()
     .int()
     .min(0, "Reps must be positive")
     .max(999, "Reps cannot exceed 999")
-    .optional(),
+    .optional()
+    .nullable(),
   rest: z
     .number()
     .int()
     .min(0, "Rest must be positive")
-    .max(3600, "Rest cannot exceed 1 hour")
-    .optional(),
+    .max(5999, "Rest cannot exceed 99 minutes")
+    .optional()
+    .nullable(),
   rpe: z
     .number()
     .min(1, "RPE must be between 1 and 10")
     .max(10, "RPE must be between 1 and 10")
-    .optional(),
-  type: z.enum(["WarmUp", "Normal", "DropsSet", "Failure"]).optional(),
+    .optional()
+    .nullable(),
+  type: z
+    .enum(["WarmUp", "Normal", "DropsSet", "Failure"])
+    .optional()
+    .nullable(),
 };
 
 export const exerciseSetSchema = z.object({

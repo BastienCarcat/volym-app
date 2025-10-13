@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma/prisma";
 import { z } from "zod";
 
 const updateWorkoutSchema = z.object({
-  id: z.string(),
+  id: z.uuidv4(),
   name: z.string().min(1, "Workout name is required").optional(),
   note: z.string().optional(),
 });

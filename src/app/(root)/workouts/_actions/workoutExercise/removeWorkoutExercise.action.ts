@@ -37,5 +37,5 @@ export const removeWorkoutExercise = authActionClient
       where: { id },
     });
 
-    return { success: true };
+    return { id };
   });

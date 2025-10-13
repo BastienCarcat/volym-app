@@ -11,7 +11,7 @@ import { Input, InputProps } from "./input";
 
 export interface DurationInputProps
   extends Omit<InputProps, "onChange" | "value"> {
-  value?: number;
+  value?: number | null;
   onChange?: (seconds: number) => void;
 }
 

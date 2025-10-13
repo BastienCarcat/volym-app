@@ -1,46 +1,117 @@
 "use client";
 
-import { Plus, Minus } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useCallback, useEffect, useMemo } from "react";
+import { debounce } from "lodash";
+import { useQueryClient } from "@tanstack/react-query";
+import { Plus, Minus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/form/fields/inputs/input";
 import { DurationInput } from "@/components/form/fields/inputs/duration-input";
-import { useValidatedAutoSave } from "../../../../../../hooks/useValidatedAutoSave";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/form/form";
 import {
   exerciseSetSchema,
   type ExerciseSetFormData,
 } from "../../../_schemas/exerciseSet.schema";
+import { useUpdateExerciseSet } from "../../../_hooks/exerciseSet/use-exercise-set";
 import type { ExerciseSet } from "@/generated/prisma";
+import { useAutoSaveForm } from "@/hooks/use-auto-save-form";
+
+interface WorkoutData {
+  id: string;
+  name: string;
+  note?: string | null;
+  exercises?: ExerciseData[];
+}
+
+interface ExerciseData {
+  id: string;
+  exerciseId: string;
+  order: number;
+  sets: SetData[];
+}
+
+interface SetData {
+  id: string;
+  weight?: number | null;
+  reps?: number | null;
+  rest?: number | null;
+  order: number;
+  type?: "WarmUp" | "Normal" | "DropsSet" | "Failure";
+  rpe?: number | null;
+}
 
 interface ExerciseSetRowProps {
   set: ExerciseSet;
   index: number;
-  onUpdate: (setId: string, updates: Partial<ExerciseSetFormData>) => void;
   onAddSet: (insertAfterIndex: number) => void;
   onRemoveSet: (setId: string) => void;
   canRemove: boolean;
+  workoutId: string;
+}
+
+interface FormValues {
+  weight?: number | null;
+  reps?: number | null;
+  rest?: number | null;
+  rpe?: number | null;
 }
 
 export function ExerciseSetRow({
   set,
   index,
-  onUpdate,
   onAddSet,
   onRemoveSet,
   canRemove,
+  workoutId,
 }: ExerciseSetRowProps) {
-  const initialValue: ExerciseSetFormData = {
-    weight: set.weight || undefined,
-    reps: set.reps || undefined,
-    rest: set.rest || undefined,
-    rpe: set.rpe || undefined,
-  };
+  const queryClient = useQueryClient();
 
-  const setAutoSave = useValidatedAutoSave({
-    initialValue,
-    schema: exerciseSetSchema,
-    onSave: (validSet) => onUpdate(set.id, validSet),
-    delay: 500,
+  // Read current set data from cache
+  // const getSetFromCache = useMemo(() => {
+  //   return () => {
+  //     const workoutData = queryClient.getQueryData<WorkoutData>(["workout", workoutId]);
+  //     const currentSet = workoutData?.exercises
+  //       ?.flatMap(ex => ex.sets)
+  //       ?.find(s => s.id === set.id);
+
+  //     return currentSet || set;
+  //   };
+  // }, [queryClient, workoutId, set]);
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(exerciseSetSchema),
+    defaultValues: {
+      weight: set.weight,
+      reps: set.reps,
+      rest: set.rest,
+      rpe: set.rpe,
+    },
+  });
+
+  const { mutate: updateSet, isPending: isUpdating } =
+    useUpdateExerciseSet(workoutId);
+
+  const handleSave = useCallback(
+    (vals: FormValues) => {
+      updateSet({ id: set.id, ...vals });
+    },
+    [updateSet, set.id]
+  );
+
+  useAutoSaveForm({
+    form,
+    names: ["weight", "rest", "reps"],
+    onSave: handleSave,
+    delay: 100,
   });
 
   return (
@@ -51,49 +122,85 @@ export function ExerciseSetRow({
       >
         {index + 1}
       </Badge>
-      <Input
-        type="number"
-        value={setAutoSave.value.weight?.toString() || ""}
-        onChange={(e) => {
-          const newValue = e.target.value ? Number(e.target.value) : undefined;
-          setAutoSave.setValue({
-            ...setAutoSave.value,
-            weight: newValue,
-          });
-        }}
-        placeholder="0"
-        min={0}
-        className="text-right"
-        error={setAutoSave.fieldErrors?.weight}
-      />
-      <Input
-        type="number"
-        value={setAutoSave.value.reps?.toString() || ""}
-        onChange={(e) => {
-          const newValue = e.target.value ? Number(e.target.value) : undefined;
-          setAutoSave.setValue({
-            ...setAutoSave.value,
-            reps: newValue,
-          });
-        }}
-        placeholder="0"
-        min={0}
-        className="text-right"
-        error={setAutoSave.fieldErrors?.reps}
-      />
-      <DurationInput
-        value={setAutoSave.value.rest}
-        onChange={(value) => {
-          setAutoSave.setValue({
-            ...setAutoSave.value,
-            rest: value,
-          });
-        }}
-        placeholder="0:00"
-        className="text-right"
-        error={setAutoSave.fieldErrors?.rest}
-      />
-      <div>
+
+      <Form {...form}>
+        <FormField
+          control={form.control}
+          name="weight"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    placeholder="0"
+                    min={0}
+                    className="text-right"
+                    {...field}
+                    onChange={(e) => {
+                      const value = e.target.value
+                        ? Number(e.target.value)
+                        : undefined;
+                      field.onChange(value);
+                    }}
+                    value={field.value?.toString() || ""}
+                  />
+                  {isUpdating && (
+                    <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 animate-spin text-muted-foreground" />
+                  )}
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="reps"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  min={0}
+                  className="text-right"
+                  {...field}
+                  onChange={(e) => {
+                    const value = e.target.value
+                      ? Number(e.target.value)
+                      : undefined;
+                    field.onChange(value);
+                  }}
+                  value={field.value?.toString() || ""}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="rest"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <DurationInput
+                  value={field.value}
+                  onChange={(value) => field.onChange(value)}
+                  placeholder="0:00"
+                  className="text-right"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </Form>
+
+      <div className="flex items-center gap-1">
         <Button
           variant="ghost"
           size="sm"
@@ -111,6 +218,9 @@ export function ExerciseSetRow({
         >
           <Minus className="w-4 h-4" />
         </Button>
+        {isUpdating && (
+          <div className="text-xs text-muted-foreground">Saving...</div>
+        )}
       </div>
     </div>
   );
