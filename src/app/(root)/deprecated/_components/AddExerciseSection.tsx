@@ -9,7 +9,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { ExerciseListItem } from "./ExerciseListItem";
+import { ExerciseListItem } from "../../workouts/_components/Exercises/ExercisesListItem";
 import type { Exercise } from "../types";
 
 const mockExercises: Exercise[] = [

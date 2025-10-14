@@ -1,5 +1,6 @@
-import { WorkoutPageClient } from "./WorkoutPageClient";
-import { getWorkoutById } from "../_actions/workout/getWorkoutById.action";
+import { getWorkoutById } from "../_actions/get-workout-by-id.action";
+import WorkoutEditorPage from "../_components/WorkoutEditor";
+import React from "react";
 
 export default async function WorkoutPage({
   params,
@@ -9,5 +10,5 @@ export default async function WorkoutPage({
   const { id } = await params;
   const workout = await getWorkoutById(id);
 
-  return <WorkoutPageClient workoutId={id} initialWorkout={workout} />;
+  return <WorkoutEditorPage workout={workout} />;
 }

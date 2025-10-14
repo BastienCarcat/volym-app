@@ -1,63 +1,76 @@
-// Exercise Types matching API format
+import { Prisma } from "@/generated/prisma";
+import { z } from "zod";
+import { saveWorkoutSchema } from "./schemas";
 
-export interface Muscle {
-  id: string;
-  name: string;
-  bodyPart: string;
-  group: string | null;
-}
+export const getWorkoutByIdSelect = Prisma.validator<Prisma.WorkoutSelect>()({
+  id: true,
+  name: true,
+  note: true,
+  exercises: {
+    orderBy: { order: "asc" },
+    select: {
+      id: true,
+      note: true,
+      order: true,
+      exerciseId: true,
+      // supersetId: true,
+      sets: {
+        orderBy: { order: "asc" },
+        select: {
+          id: true,
+          weight: true,
+          reps: true,
+          rest: true,
+          type: true,
+          rpe: true,
+          order: true,
+        },
+      },
+    },
+  },
+});
 
-export interface ExerciseVariation {
-  id: string;
-  name: string;
-  bodyPart: string;
-  image: string;
-}
+export type WorkoutWithExercisesAndSets = Prisma.WorkoutGetPayload<{
+  select: typeof getWorkoutByIdSelect;
+}>;
 
-export interface ExerciseInstruction {
-  order: number;
-  description: string;
-}
+export type ExerciseData = WorkoutWithExercisesAndSets["exercises"];
 
+// Additional types for the form and components
 export interface Exercise {
   id: string;
-  bodyPart: string;
-  image: string;
   name: string;
+  image: string | null;
+  bodyPart: string;
   equipment: string;
-  variations?: ExerciseVariation[];
-  instructions?: ExerciseInstruction[];
-  targetMuscles: Muscle[];
-  secondaryMuscles: Muscle[];
+  targetMuscles: {
+    id: string;
+    name: string;
+    bodyPart: string;
+    group: string | null;
+  }[];
+  secondaryMuscles: {
+    id: string;
+    name: string;
+    bodyPart: string;
+    group: string | null;
+  }[];
 }
 
-// Workout Exercise (when added to a workout)
-export interface WorkoutExercise {
-  id: string; // Unique ID for this workout exercise instance
-  exerciseId: string; // Original exercise ID from Exercise.id
-  name: string;
-  bodyPart: string;
-  image: string;
-  equipment: string;
-  targetMuscles: Muscle[];
-  secondaryMuscles: Muscle[];
-  order: number; // Order in the workout
-  createdAt: Date;
-}
+export type WorkoutFormValues = z.infer<typeof saveWorkoutSchema>;
 
-// Simplified type for forms and simple operations
-export interface SimpleExercise {
-  id: string;
-  name: string;
-  bodyPart: string;
-  image: string;
-  equipment: string;
-  targetMuscles: Muscle[];
-  secondaryMuscles: Muscle[];
-}
+// export interface SetData {
+//   weight: number | null;
+//   reps: number | null;
+//   rest: number;
+//   type: "WarmUp" | "Normal" | "DropsSet" | "Failure";
+//   rpe: number | null;
+//   order: number;
+// }
 
-// Legacy DTO (keep for potential future use)
-// interface CreateWorkoutDto {
-//   name: string;
-//   note?: string;
+// export interface ExerciseData {
+//   exerciseId: string;
+//   note: string;
+//   order: number;
+//   sets: SetData[];
 // }

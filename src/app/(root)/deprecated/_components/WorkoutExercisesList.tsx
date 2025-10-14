@@ -1,17 +1,11 @@
 "use client";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-import { useQuery } from "@tanstack/react-query";
 import { ExerciseCard } from "./ExerciseCard";
 import { AddExerciseSection } from "./AddExerciseSection";
-import {
-  useAddWorkoutExercise,
-  useRemoveWorkoutExercise,
-} from "../_hooks/workoutExercise";
 import { Separator } from "@/components/ui/separator";
-import type { Exercise } from "../types";
 import { cn } from "@/lib/utils";
+import type { Exercise } from "../types";
+import type { WorkoutData, ExerciseData } from "../[id]/WorkoutPageClient";
 
 // Données mock des exercices (à terme, à récupérer depuis une API)
 const mockExercises: Exercise[] = [
@@ -151,75 +145,65 @@ const mockExercises: Exercise[] = [
 ];
 
 interface WorkoutExercisesListProps {
-  workoutId: string;
+  workoutData: WorkoutData;
+  onWorkoutChange: (workout: WorkoutData) => void;
 }
 
-interface WorkoutData {
-  exercises: Array<{
-    id: string;
-    exerciseId: string;
-    note?: string | null;
-    sets: any[];
-  }>;
-}
-
-export function WorkoutExercisesList({ workoutId }: WorkoutExercisesListProps) {
-  const { data: workout } = useQuery<WorkoutData>({
-    queryKey: ["workout", workoutId],
-    queryFn: () => Promise.resolve({} as WorkoutData),
-    enabled: false,
-    initialData: undefined,
-  });
-
-  const { addExercise, isAdding } = useAddWorkoutExercise(workoutId);
-  const { removeExercise, isRemoving } = useRemoveWorkoutExercise(workoutId);
-
+export function WorkoutExercisesList({ workoutData, onWorkoutChange }: WorkoutExercisesListProps) {
   const handleExerciseAdd = (exercise: Exercise) => {
-    const currentExercises = workout?.exercises || [];
-    const newOrder = currentExercises.length;
-
-    addExercise({
-      workoutId,
+    const newOrder = workoutData.exercises.length;
+    const newExercise: ExerciseData = {
       exerciseId: exercise.id,
       order: newOrder,
+      sets: [],
+    };
+
+    onWorkoutChange({
+      ...workoutData,
+      exercises: [...workoutData.exercises, newExercise],
     });
   };
 
-  const handleExerciseRemove = (exerciseId: string) => {
-    removeExercise(exerciseId);
+  const handleExerciseRemove = (exerciseIndex: number) => {
+    const updatedExercises = workoutData.exercises
+      .filter((_, index) => index !== exerciseIndex)
+      .map((ex, index) => ({ ...ex, order: index }));
+
+    onWorkoutChange({
+      ...workoutData,
+      exercises: updatedExercises,
+    });
   };
 
-  const exercises = workout?.exercises || [];
+  const handleExerciseChange = (exerciseIndex: number, updatedExercise: ExerciseData) => {
+    const updatedExercises = workoutData.exercises.map((ex, index) =>
+      index === exerciseIndex ? updatedExercise : ex
+    );
+
+    onWorkoutChange({
+      ...workoutData,
+      exercises: updatedExercises,
+    });
+  };
+
+  const exercises = workoutData.exercises;
 
   return (
     <div className="max-w-4xl mx-auto px-6">
-      {/* Loading indicators */}
-      {(isAdding || isRemoving) && (
-        <div className="text-sm text-blue-600 bg-blue-50 px-3 py-2 mb-4 rounded-md">
-          💾 Saving workout...
-        </div>
-      )}
-
       {/* Exercise Cards */}
-      {exercises.map((exercise: any, index: number) => {
+      {exercises.map((exercise, index: number) => {
         // Récupérer les données complètes de l'exercice depuis le mock
         const exerciseData = mockExercises.find(
           (ex) => ex.id === exercise.exerciseId
         );
 
         return (
-          <div key={exercise.id} className="relative">
+          <div key={`exercise-${index}`} className="relative">
             <ExerciseCard
-              workoutExerciseId={exercise.id}
-              exerciseId={exercise.exerciseId}
-              name={exerciseData?.name || exercise.exerciseId}
-              image={exerciseData?.image}
-              targetMuscles={exerciseData?.targetMuscles || []}
-              secondaryMuscles={exerciseData?.secondaryMuscles || []}
-              sets={exercise.sets}
-              note={exercise.note}
-              workoutId={workoutId}
-              onDelete={() => handleExerciseRemove(exercise.id)}
+              exerciseData={exercise}
+              exerciseInfo={exerciseData}
+              onExerciseChange={(updatedExercise) => handleExerciseChange(index, updatedExercise)}
+              onDelete={() => handleExerciseRemove(index)}
             />
             {index < exercises.length - 1 && (
               <div className="flex justify-center my-4">

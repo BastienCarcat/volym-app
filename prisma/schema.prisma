@@ -10,8 +10,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
@@ -42,22 +42,22 @@ model User {
   email     String   @unique
   type      UserType @default(Athlete)
 
-  programs  Program[]
-  workouts  Workout[]
+  programs Program[]
+  workouts Workout[]
 }
 
 model Program {
-  id         String            @id @default(uuid())
-  createdBy  String
-  note       String?           @db.Text
-  name       String
+  id        String  @id @default(uuid())
+  createdBy String
+  note      String? @db.Text
+  name      String
 
-  user       User              @relation(fields: [createdBy], references: [id])
-  schedules  ProgramSchedule[]
+  user      User              @relation(fields: [createdBy], references: [id])
+  schedules ProgramSchedule[]
 }
 
 model ProgramSchedule {
-  id         String   @id @default(uuid())
+  id         String @id @default(uuid())
   programId  String
   workoutId  String
   day        String
@@ -68,37 +68,37 @@ model ProgramSchedule {
 }
 
 model Workout {
-  id         String           @id @default(uuid())
-  createdBy  String
-  note       String?           @db.Text
-  name       String
+  id        String  @id @default(uuid())
+  createdBy String
+  note      String? @db.Text
+  name      String
 
-  user       User             @relation(fields: [createdBy], references: [id])
-  exercises  WorkoutExercise[]
-  schedules  ProgramSchedule[]
+  user      User              @relation(fields: [createdBy], references: [id])
+  exercises WorkoutExercise[]
+  schedules ProgramSchedule[]
 }
 
 model WorkoutExercise {
-  id         String         @id @default(uuid())
+  id         String  @id @default(uuid())
   workoutId  String
   exerciseId String
-  note       String?           @db.Text
+  note       String? @db.Text
   order      Int
   supersetId String?
 
-  workout    Workout        @relation(fields: [workoutId], references: [id])
-  sets       ExerciseSet[]
+  workout Workout       @relation(fields: [workoutId], references: [id])
+  sets    ExerciseSet[]
 }
 
 model ExerciseSet {
-  id               String          @id @default(uuid())
+  id                String  @id @default(uuid())
   workoutExerciseId String
-  weight           Int?
-  reps             Int?
-  rest             Int?
-  order            Int
-  type             SetType             @default(Normal)
-  rpe              Int?
+  weight            Int
+  reps              Int
+  rest              Int?
+  order             Int
+  type              SetType @default(Normal)
+  rpe               Int?
 
-  workoutExercise  WorkoutExercise @relation(fields: [workoutExerciseId], references: [id])
+  workoutExercise WorkoutExercise @relation(fields: [workoutExerciseId], references: [id])
 }

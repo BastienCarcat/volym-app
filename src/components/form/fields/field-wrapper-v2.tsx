@@ -1,0 +1,81 @@
+"use client";
+
+import * as React from "react";
+import { Controller, Control } from "react-hook-form";
+import {
+  Field,
+  FieldLabel,
+  FieldDescription,
+  FieldError,
+} from "@/components/ui/field";
+import { cn } from "@/lib/utils";
+
+export interface FieldWrapperV2Props {
+  name: string;
+  control: Control<any>;
+  label?: string;
+  description?: string;
+  required?: boolean;
+  className?: string;
+  children: (renderProps: {
+    field: any;
+    fieldState: any;
+    formState: any;
+  }) => React.ReactNode;
+}
+
+/**
+ * FieldWrapperV2 - Modern wrapper using shadcn Field components with React Hook Form Controller
+ * 
+ * Provides a clean interface for custom inputs with automatic field state management.
+ * Just wrap your custom input and use {...renderProps} to get field, fieldState, and formState.
+ * 
+ * Usage:
+ * <FieldWrapperV2 name="note" control={control} label="Note">
+ *   {(renderProps) => <CustomInput {...renderProps} />}
+ * </FieldWrapperV2>
+ * 
+ * Or even simpler:
+ * <FieldWrapperV2 name="note" control={control} label="Note">
+ *   {(props) => <Textarea {...props.field} aria-invalid={props.fieldState.invalid} />}
+ * </FieldWrapperV2>
+ */
+export function FieldWrapperV2({
+  name,
+  control,
+  label,
+  description,
+  required,
+  className,
+  children,
+}: FieldWrapperV2Props) {
+  return (
+    <Controller
+      name={name}
+      control={control}
+      render={({ field, fieldState, formState }) => (
+        <Field 
+          className={cn("space-y-2", className)} 
+          data-invalid={fieldState.invalid}
+        >
+          {label && (
+            <FieldLabel htmlFor={field.name}>
+              {label}
+              {required && <span className="text-destructive ml-1">*</span>}
+            </FieldLabel>
+          )}
+          
+          {children({ field, fieldState, formState })}
+          
+          {description && (
+            <FieldDescription>{description}</FieldDescription>
+          )}
+          
+          {fieldState.invalid && fieldState.error && (
+            <FieldError errors={[fieldState.error]} />
+          )}
+        </Field>
+      )}
+    />
+  );
+}

@@ -1,9 +1,7 @@
-import { PageTitle } from "@/components/layout/page/page-title";
-
 export default function WorkoutsPage() {
   return (
     <div>
-      <PageTitle title="New workout" />
+      <h1>New workout</h1>
     </div>
   );
 }

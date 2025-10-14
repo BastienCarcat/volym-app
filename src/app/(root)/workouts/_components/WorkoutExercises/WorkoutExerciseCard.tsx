@@ -3,7 +3,7 @@
 import { Dumbbell, MoreHorizontal, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/form/fields/inputs/textarea";
+import { TextareaV2 } from "@/components/form/fields/inputs/textarea-v2";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -18,111 +18,87 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ExerciseSetRow } from "./ExerciseSetRow";
+import type { WorkoutFormValues } from "../../types";
+import { exercisesData } from "../../MockData";
 import {
-  useAddExerciseSet,
-  useUpdateExerciseSet,
-  useRemoveExerciseSet,
-} from "../_hooks/exerciseSet";
-import { useUpdateWorkoutExercise } from "../_hooks/workoutExercise";
-import { useValidatedAutoSave } from "../../../../hooks/useValidatedAutoSave";
-import {
-  workoutNoteSchema,
-  type ExerciseSetFormData,
-} from "../_schemas/exerciseSet.schema";
-import { ExerciseSetRow } from "./Exercise/ExerciseSet/ExerciseSetRow";
-import type { ExerciseSet } from "@/generated/prisma";
+  FieldArrayWithId,
+  useFieldArray,
+  useFormContext,
+  useWatch,
+} from "react-hook-form";
+import { useMemo } from "react";
 
-interface Muscle {
-  id: string;
-  name: string;
-  bodyPart: string;
-  group: string | null;
-}
-
-interface ExerciseCardProps {
-  workoutExerciseId: string;
-  exerciseId: string;
-  name: string;
-  image?: string;
-  targetMuscles?: Muscle[];
-  secondaryMuscles?: Muscle[];
-  sets: ExerciseSet[];
-  note?: string | null;
-  workoutId: string;
+interface WorkoutExerciseCardProps {
+  workoutExercise: FieldArrayWithId<WorkoutFormValues, "exercises", "id">;
   onDelete?: () => void;
+  workoutExerciseIndex: number;
 }
 
-export function ExerciseCard({
-  workoutExerciseId,
-  name,
-  image,
-  targetMuscles = [],
-  secondaryMuscles = [],
-  sets,
-  note: initialNote,
-  workoutId,
+export function WorkoutExerciseCard({
+  workoutExercise,
   onDelete,
-}: ExerciseCardProps) {
-  const { addSet } = useAddExerciseSet(workoutId);
-  const { updateSet } = useUpdateExerciseSet(workoutId);
-  const { removeSet } = useRemoveExerciseSet(workoutId);
-  const { updateWorkoutExercise } = useUpdateWorkoutExercise(workoutId);
+  workoutExerciseIndex,
+}: WorkoutExerciseCardProps) {
+  //TODO: Make better typing
+  const { control } = useFormContext<WorkoutFormValues>();
 
-  const noteAutoSave = useValidatedAutoSave({
-    initialValue: initialNote || "",
-    schema: workoutNoteSchema,
-    onSave: (validNote) => {
-      updateWorkoutExercise({ id: workoutExerciseId, note: validNote });
-    },
-    delay: 1000,
+  const {
+    fields: sets,
+    remove,
+    append,
+  } = useFieldArray({
+    control,
+    name: `exercises.${workoutExerciseIndex}.sets`,
   });
 
-  const handleAddSet = (insertAfterIndex?: number) => {
-    const newOrder =
-      insertAfterIndex !== undefined ? insertAfterIndex + 2 : sets.length + 1;
-    const referenceSet =
-      insertAfterIndex !== undefined
-        ? sets[insertAfterIndex]
-        : sets[sets.length - 1];
-
-    addSet({
-      workoutExerciseId,
-      weight: referenceSet?.weight || undefined,
-      reps: referenceSet?.reps || undefined,
-      rest: referenceSet?.rest || undefined,
-      order: newOrder,
-      type: "Normal",
-    });
+  const handleSetRemove = (index: number) => {
+    remove(index);
   };
 
-  const handleRemoveSet = async (setId: string) => {
-    if (sets.length <= 1) return;
-    removeSet(setId);
+  const handleSetAdd = (insertAfterIndex: number) => {
+    const newSet = {
+      weight: 0,
+      reps: 0,
+      rest: 0,
+      type: "Normal" as const,
+      rpe: null,
+      order: insertAfterIndex,
+    };
+    append(newSet);
   };
 
-  const handleUpdateSet = (
-    setId: string,
-    updates: Partial<ExerciseSetFormData>
-  ) => {
-    updateSet(setId, updates);
-  };
+  const exerciseInfo = exercisesData.find(
+    (ex) => ex.id === workoutExercise.exerciseId
+  );
 
-  const calculateVolume = () => {
-    return sets.reduce((total, set) => {
+  const name = exerciseInfo?.name;
+  const image = exerciseInfo?.image;
+  const targetMuscles = exerciseInfo?.targetMuscles || [];
+  const secondaryMuscles = exerciseInfo?.secondaryMuscles || [];
+
+  const watchedSets = useWatch({
+    control,
+    name: `exercises.${workoutExerciseIndex}.sets`,
+  });
+
+  const calculateVolume = useMemo(() => {
+    if (!watchedSets) return 0;
+    return watchedSets.reduce((total, set) => {
       const weight = set.weight || 0;
       const reps = set.reps || 0;
       return total + weight * reps;
     }, 0);
-  };
+  }, [watchedSets]);
 
-  const calculateEstimatedDuration = () => {
-    const totalRestTime = sets.reduce(
+  const calculateEstimatedDuration = useMemo(() => {
+    const totalRestTime = watchedSets.reduce(
       (total, set) => total + (set.rest || 0),
       0
     );
-    const executionTime = sets.length * 30; // Assume 30 seconds per set
+    const executionTime = watchedSets.length * 30; // Assume 30 seconds per set
     return Math.round((totalRestTime + executionTime) / 60);
-  };
+  }, [watchedSets]);
 
   return (
     <Card className="overflow-hidden">
@@ -134,7 +110,7 @@ export function ExerciseCard({
               {image ? (
                 <Image
                   src={image}
-                  alt={name}
+                  alt={name || ""}
                   width={120}
                   height={120}
                   className="w-full h-full object-cover"
@@ -205,14 +181,11 @@ export function ExerciseCard({
               ))}
             </div>
             <div>
-              <Textarea
+              <TextareaV2
+                name={`exercises.${workoutExerciseIndex}.note`}
+                control={control}
                 placeholder="Add a note"
-                value={noteAutoSave.value}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                  noteAutoSave.setValue(e.target.value)
-                }
                 className="h-16 resize-none text-sm"
-                error={noteAutoSave.error || undefined}
               />
             </div>
           </div>
@@ -242,12 +215,13 @@ export function ExerciseCard({
               {/* Table Rows */}
               {sets.map((set, index) => (
                 <ExerciseSetRow
-                  key={set.id}
+                  key={`set-${index}`}
                   set={set}
-                  index={index}
-                  onUpdate={handleUpdateSet}
-                  onAddSet={handleAddSet}
-                  onRemoveSet={handleRemoveSet}
+                  setIndex={index}
+                  workoutExerciseIndex={workoutExerciseIndex}
+                  // onUpdate={(updates) => handleUpdateSet(index, updates)}
+                  onAddSet={(index) => handleSetAdd(index)}
+                  onRemoveSet={() => handleSetRemove(index)}
                   canRemove={sets.length > 1}
                 />
               ))}
@@ -260,7 +234,7 @@ export function ExerciseCard({
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Volume</span>
                 <span className="text-sm font-medium">
-                  {calculateVolume()} <span className="text-gray-400">Kg</span>
+                  {calculateVolume} <span className="text-gray-400">Kg</span>
                 </span>
               </div>
               <div className="flex justify-between items-center">
@@ -272,7 +246,7 @@ export function ExerciseCard({
                   Estimated duration
                 </span>
                 <span className="text-sm font-medium">
-                  {calculateEstimatedDuration()}{" "}
+                  {calculateEstimatedDuration}{" "}
                   <span className="text-gray-400">min</span>
                 </span>
               </div>

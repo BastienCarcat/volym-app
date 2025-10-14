@@ -5,19 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/form/fields/inputs/input";
 import { DurationInput } from "@/components/form/fields/inputs/duration-input";
-import { useValidatedAutoSave } from "../../../../../../hooks/useValidatedAutoSave";
-import {
-  exerciseSetSchema,
-  type ExerciseSetFormData,
-} from "../../../_schemas/exerciseSet.schema";
-import type { ExerciseSet } from "@/generated/prisma";
+import type { SetData } from "../../../[id]/WorkoutPageClient";
 
 interface ExerciseSetRowProps {
-  set: ExerciseSet;
+  set: SetData;
   index: number;
-  onUpdate: (setId: string, updates: Partial<ExerciseSetFormData>) => void;
+  onUpdate: (updates: Partial<SetData>) => void;
   onAddSet: (insertAfterIndex: number) => void;
-  onRemoveSet: (setId: string) => void;
+  onRemoveSet: () => void;
   canRemove: boolean;
 }
 
@@ -29,19 +24,6 @@ export function ExerciseSetRow({
   onRemoveSet,
   canRemove,
 }: ExerciseSetRowProps) {
-  const initialValue: ExerciseSetFormData = {
-    weight: set.weight || undefined,
-    reps: set.reps || undefined,
-    rest: set.rest || undefined,
-    rpe: set.rpe || undefined,
-  };
-
-  const setAutoSave = useValidatedAutoSave({
-    initialValue,
-    schema: exerciseSetSchema,
-    onSave: (validSet) => onUpdate(set.id, validSet),
-    delay: 500,
-  });
 
   return (
     <div className="contents">
@@ -53,45 +35,33 @@ export function ExerciseSetRow({
       </Badge>
       <Input
         type="number"
-        value={setAutoSave.value.weight?.toString() || ""}
+        value={set.weight?.toString() || ""}
         onChange={(e) => {
-          const newValue = e.target.value ? Number(e.target.value) : undefined;
-          setAutoSave.setValue({
-            ...setAutoSave.value,
-            weight: newValue,
-          });
+          const newValue = e.target.value ? Number(e.target.value) : null;
+          onUpdate({ weight: newValue });
         }}
         placeholder="0"
         min={0}
         className="text-right"
-        error={setAutoSave.fieldErrors?.weight}
       />
       <Input
         type="number"
-        value={setAutoSave.value.reps?.toString() || ""}
+        value={set.reps?.toString() || ""}
         onChange={(e) => {
-          const newValue = e.target.value ? Number(e.target.value) : undefined;
-          setAutoSave.setValue({
-            ...setAutoSave.value,
-            reps: newValue,
-          });
+          const newValue = e.target.value ? Number(e.target.value) : null;
+          onUpdate({ reps: newValue });
         }}
         placeholder="0"
         min={0}
         className="text-right"
-        error={setAutoSave.fieldErrors?.reps}
       />
       <DurationInput
-        value={setAutoSave.value.rest}
+        value={set.rest}
         onChange={(value) => {
-          setAutoSave.setValue({
-            ...setAutoSave.value,
-            rest: value,
-          });
+          onUpdate({ rest: value });
         }}
         placeholder="0:00"
         className="text-right"
-        error={setAutoSave.fieldErrors?.rest}
       />
       <div>
         <Button
@@ -105,7 +75,7 @@ export function ExerciseSetRow({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => onRemoveSet(set.id)}
+          onClick={onRemoveSet}
           className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 transition-colors"
           disabled={!canRemove}
         >
