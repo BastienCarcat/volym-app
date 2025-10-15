@@ -13,6 +13,7 @@ export { FieldWrapper } from "./fields/field-wrapper";
 export { Input } from "./fields/inputs/input";
 export { InputV2 } from "./fields/inputs/input-v2";
 export { NumberInputV2 } from "./fields/inputs/number-input-v2";
+export { TitleInput } from "./fields/inputs/title-input";
 export { Textarea } from "./fields/inputs/textarea";
 export { TextareaV2 } from "./fields/inputs/textarea-v2";
 export { DurationInput } from "./fields/inputs/duration-input";

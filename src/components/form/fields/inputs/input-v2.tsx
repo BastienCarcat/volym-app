@@ -31,6 +31,11 @@ export interface InputV2Props
   required?: boolean;
   className?: string;
   size?: "default" | "small";
+  renderInput?: (params: {
+    field: any;
+    fieldState: any;
+    inputProps: React.ComponentProps<"input">;
+  }) => React.ReactElement;
 }
 
 /**
@@ -56,6 +61,7 @@ export function InputV2({
   required,
   className,
   size = "default",
+  renderInput,
   ...inputProps
 }: InputV2Props) {
   return (
@@ -66,16 +72,22 @@ export function InputV2({
       description={description}
       required={required}
     >
-      {({ field, fieldState }) => (
-        <input
-          {...field}
-          {...inputProps}
-          id={field.name}
-          aria-invalid={fieldState.invalid}
-          data-slot="input"
-          className={cn(inputVariants({ size }), className)}
-        />
-      )}
+      {({ field, fieldState }) => {
+        const baseInputProps = {
+          ...field,
+          ...inputProps,
+          id: field.name,
+          "aria-invalid": fieldState.invalid,
+          "data-slot": "input" as const,
+          className: cn(inputVariants({ size }), className),
+        };
+
+        if (renderInput) {
+          return renderInput({ field, fieldState, inputProps: baseInputProps });
+        }
+
+        return <input {...baseInputProps} />;
+      }}
     </FieldWrapperV2>
   );
 }

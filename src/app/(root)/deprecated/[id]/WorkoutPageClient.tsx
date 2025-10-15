@@ -67,9 +67,7 @@ function convertToWorkoutData(workout: WorkoutWithRelations): WorkoutData {
   };
 }
 
-export function WorkoutPageClient({
-  initialWorkout,
-}: WorkoutPageClientProps) {
+export function WorkoutPageClient({ initialWorkout }: WorkoutPageClientProps) {
   const [workoutData, setWorkoutData] = useState<WorkoutData>(
     convertToWorkoutData(initialWorkout)
   );
@@ -106,17 +104,11 @@ export function WorkoutPageClient({
 
   return (
     <div className="relative">
-      <PageTitle
-        title={workoutData.name}
-        description={workoutData.note || ""}
-        onTitleChange={handleTitleChange}
-        onDescriptionChange={handleDescriptionChange}
-      />
-      <WorkoutExercisesList 
+      <WorkoutExercisesList
         workoutData={workoutData}
         onWorkoutChange={setWorkoutData}
       />
-      
+
       {/* Save Button - Fixed at bottom */}
       <div className="fixed bottom-6 right-6 z-50">
         <Button
@@ -128,7 +120,7 @@ export function WorkoutPageClient({
           <Save className="h-4 w-4 mr-2" />
           {isSaving ? "Saving..." : "Save Workout"}
         </Button>
-        
+
         {isDirty && !isSaving && (
           <div className="flex items-center mt-2 text-sm text-orange-600">
             <AlertCircle className="h-3 w-3 mr-1" />

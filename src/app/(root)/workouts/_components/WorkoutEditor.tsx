@@ -28,29 +28,25 @@ export default function WorkoutEditorPage({ workout }: WorkoutEditorPageProps) {
       defaultValues: workout,
     },
     actionProps: {
+      onSuccess: ({ data }) => {
+        if (data) {
+          form.reset(data);
+        }
+      },
       onError: ({ error }) => {
         toast.error(error.serverError);
       },
     },
   });
 
-  const handleTitleChange = (name: string) => {
-    form.setValue("name", name, { shouldDirty: true });
-  };
-
-  const handleDescriptionChange = (note: string) => {
-    form.setValue("note", note, { shouldDirty: true });
-  };
-
   return (
     <div className="relative">
-      <PageTitle
-        title={form.watch("name")}
-        description={form.watch("note") || ""}
-        onTitleChange={handleTitleChange}
-        onDescriptionChange={handleDescriptionChange}
-      />
       <FormProvider {...form}>
+        <PageTitle
+          control={form.control}
+          titleName="name"
+          descriptionName="note"
+        />
         <WorkoutExercisesList />
       </FormProvider>
 
