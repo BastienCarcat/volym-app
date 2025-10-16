@@ -9,7 +9,7 @@ export default function RootLayout({
   return (
     <SidebarProvider>
       <AppSidebar />
-      <div className="h-screen flex flex-col w-full">{children}</div>
+      <div className="flex h-screen w-full flex-col">{children}</div>
     </SidebarProvider>
   );
 }

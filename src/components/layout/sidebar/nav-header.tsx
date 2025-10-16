@@ -1,3 +1,3 @@
 export function NavHeader() {
-  return <div className="p-4 flex justify-center">LOGO - Volym</div>;
+  return <div className="flex justify-center p-4">LOGO - Volym</div>;
 }

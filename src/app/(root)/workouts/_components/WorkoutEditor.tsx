@@ -87,20 +87,20 @@ export default function WorkoutEditorPage({
         <WorkoutExercisesList />
       </FormProvider>
 
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed right-6 bottom-6 z-50">
         <Button
           onClick={handleSubmitWithAction}
           disabled={!canSave}
           size="lg"
           className="shadow-lg"
         >
-          <Save className="h-4 w-4 mr-2" />
+          <Save className="mr-2 h-4 w-4" />
           {isExecuting ? "Saving..." : "Save Workout"}
         </Button>
 
         {canSave && (
-          <div className="flex items-center mt-2 text-sm text-orange-600">
-            <AlertCircle className="h-3 w-3 mr-1" />
+          <div className="mt-2 flex items-center text-sm text-orange-600">
+            <AlertCircle className="mr-1 h-3 w-3" />
             Unsaved changes
           </div>
         )}

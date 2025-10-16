@@ -1,7 +1,11 @@
 import WorkoutEditorPage from "../_components/WorkoutEditor";
 import React from "react";
 import { prefetchWorkout } from "../_hooks/use-workouts";
-import { HydrationBoundary, QueryClient, dehydrate } from "@tanstack/react-query";
+import {
+  HydrationBoundary,
+  QueryClient,
+  dehydrate,
+} from "@tanstack/react-query";
 
 export default async function WorkoutPage({
   params,

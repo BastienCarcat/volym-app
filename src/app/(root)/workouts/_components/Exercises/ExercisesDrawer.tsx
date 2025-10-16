@@ -33,7 +33,7 @@ export function ExercisesDrawer({ onExerciseAdd }: ExercisesDrawerProps) {
         <SheetTrigger asChild>
           <Button
             variant="outline"
-            className="border-dashed border-2 border-gray-300 text-gray-600 hover:border-gray-400 hover:text-gray-700 px-6 py-2 "
+            className="border-2 border-dashed border-gray-300 px-6 py-2 text-gray-600 hover:border-gray-400 hover:text-gray-700"
           >
             + Add exercise
           </Button>

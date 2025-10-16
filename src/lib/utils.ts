@@ -43,9 +43,7 @@ export const isActionSuccessful = <TData, TInput extends z.ZodType>(
  * @returns A promise that resolves to false
  */
 export const resolveActionResult = async <TData, TInput extends z.ZodType>(
-  action: Promise<
-    SafeActionResult<TData, TInput, any, any, any> | undefined
-  >
+  action: Promise<SafeActionResult<TData, TInput, any, any, any> | undefined>
 ): Promise<TData> => {
   return new Promise((resolve, reject) => {
     action

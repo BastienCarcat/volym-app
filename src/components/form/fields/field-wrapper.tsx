@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Controller, Control } from "react-hook-form";
 import {
   Field,
   FieldLabel,
@@ -8,46 +9,68 @@ import {
   FieldError,
 } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
-import { BaseFieldProps } from "./types";
 
-export interface FieldWrapperProps extends BaseFieldProps {
+export interface FieldWrapperProps {
+  name: string;
+  control: Control<any>;
+  label?: string;
+  description?: string;
+  required?: boolean;
   className?: string;
-  children: React.ReactNode;
+  children: (renderProps: {
+    field: any;
+    fieldState: any;
+    formState: any;
+  }) => React.ReactNode;
 }
 
 /**
- * FieldWrapper - A reusable wrapper for form inputs that provides consistent styling,
- * labels, error messages, and accessibility features using shadcn Field components.
- * Works standalone without requiring React Hook Form context.
+ * FieldWrapper - Modern wrapper using shadcn Field components with React Hook Form Controller
  *
- * @param label - The label text for the field
- * @param error - Error message to display
- * @param required - Whether the field is required (adds * to label)
- * @param description - Optional description text below the field
- * @param className - Additional CSS classes for the wrapper
- * @param children - The input component to wrap
+ * Provides a clean interface for custom inputs with automatic field state management.
+ * Just wrap your custom input and use {...renderProps} to get field, fieldState, and formState.
+ *
+ * Usage:
+ * <FieldWrapper name="note" control={control} label="Note">
+ *   {(renderProps) => <CustomInput {...renderProps} />}
+ * </FieldWrapper>
+ *
+ * Or even simpler:
+ * <FieldWrapper name="note" control={control} label="Note">
+ *   {(props) => <Textarea {...props.field} aria-invalid={props.fieldState.invalid} />}
+ * </FieldWrapper>
  */
 export function FieldWrapper({
+  name,
+  control,
   label,
-  error,
-  required,
   description,
+  required,
   className,
   children,
 }: FieldWrapperProps) {
   return (
-    <Field className={cn("space-y-2", className)} data-invalid={!!error}>
-      {label && (
-        <FieldLabel className="text-sm font-medium">
-          {label}
-          {required && <span className="text-destructive ml-1">*</span>}
-        </FieldLabel>
+    <Controller
+      name={name}
+      control={control}
+      render={({ field, fieldState, formState }) => (
+        <Field className={className} data-invalid={fieldState.invalid}>
+          {label && (
+            <FieldLabel htmlFor={field.name}>
+              {label}
+              {required && <span className="text-destructive ml-1">*</span>}
+            </FieldLabel>
+          )}
+
+          {children({ field, fieldState, formState })}
+
+          {description && <FieldDescription>{description}</FieldDescription>}
+
+          {fieldState.invalid && fieldState.error && (
+            <FieldError errors={[fieldState.error]} />
+          )}
+        </Field>
       )}
-      {children}
-      {description && (
-        <FieldDescription>{description}</FieldDescription>
-      )}
-      {error && <FieldError>{error}</FieldError>}
-    </Field>
+    />
   );
 }

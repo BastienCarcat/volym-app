@@ -58,7 +58,7 @@ export function NavGroupWorkouts() {
         disabled={createIsPending}
       >
         {createIsPending ? (
-          <Loader2 className="text-gray-400 animate-spin" />
+          <Loader2 className="animate-spin text-gray-400" />
         ) : (
           <Plus />
         )}
@@ -67,7 +67,7 @@ export function NavGroupWorkouts() {
       <SidebarMenu>
         {getIsLoading ? (
           <SidebarMenuItem className="flex justify-center pt-2">
-            <Loader2 className="text-gray-400 animate-spin" />
+            <Loader2 className="animate-spin text-gray-400" />
           </SidebarMenuItem>
         ) : workouts?.length === 0 ? (
           <SidebarMenuItem>

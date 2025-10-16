@@ -10,16 +10,25 @@ import {
 import { Input, InputProps } from "./input";
 
 export interface DurationInputProps
-  extends Omit<InputProps, "onChange" | "value"> {
-  value?: number;
-  onChange?: (seconds: number) => void;
-}
+  extends Omit<InputProps, "onChange" | "value"> {}
 
+/**
+ * DurationInput - Duration input component extending Input
+ *
+ * Inherits all Input functionality while adding duration-specific behavior.
+ * Accepts input in seconds and displays as MM:SS format.
+ *
+ * Usage:
+ * <DurationInput
+ *   name="exercises.0.sets.1.rest"
+ *   control={control}
+ *   label="Rest time"
+ *   placeholder="0:00"
+ * />
+ */
 export function DurationInput({
-  value,
-  onChange,
-  placeholder = "0:00",
   className,
+  placeholder = "0:00",
   ...props
 }: DurationInputProps) {
   const [digits, setDigits] = useState<string>("");
@@ -28,18 +37,16 @@ export function DurationInput({
 
   // Debounced function to call onChange
   const debouncedOnChange = useCallback(
-    (seconds: number) => {
+    (seconds: number, onChange: (value: number) => void) => {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
 
       debounceTimerRef.current = setTimeout(() => {
-        if (onChange) {
-          onChange(seconds);
-        }
+        onChange(seconds);
       }, 1000);
     },
-    [onChange]
+    []
   );
 
   // Cleanup timer on unmount
@@ -51,13 +58,16 @@ export function DurationInput({
     };
   }, []);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    onChange: (value: number) => void
+  ) => {
     // Handle deletion
     if (e.key === "Backspace" || e.key === "Delete") {
       e.preventDefault();
       const newDigits = digits.slice(0, -1);
       setDigits(newDigits);
-      debouncedOnChange(parseDigitsToSeconds(newDigits));
+      debouncedOnChange(parseDigitsToSeconds(newDigits), onChange);
       return;
     }
 
@@ -87,7 +97,7 @@ export function DurationInput({
 
       const newDigits = digits + e.key;
       setDigits(newDigits);
-      debouncedOnChange(parseDigitsToSeconds(newDigits));
+      debouncedOnChange(parseDigitsToSeconds(newDigits), onChange);
 
       return;
     }
@@ -95,16 +105,6 @@ export function DurationInput({
     // Block all other keys
     e.preventDefault();
   };
-
-  // Sync with value prop
-  useEffect(() => {
-    if (typeof value === "number" && !isNaN(value) && value >= 0) {
-      const newDigits = secondsToDigitsString(value);
-      setDigits(newDigits);
-    } else if (value === 0) {
-      setDigits("");
-    }
-  }, [value]);
 
   // Keep cursor at the end
   useEffect(() => {
@@ -117,15 +117,35 @@ export function DurationInput({
 
   return (
     <Input
-      ref={inputRef}
-      type="text"
-      inputMode="numeric"
-      value={formatDigitsToTimeDisplay(digits)}
-      onBeforeInput={(e) => e.preventDefault()}
-      onKeyDown={handleKeyDown}
-      placeholder={placeholder}
-      className={cn("font-mono text-center tabular-nums", className)}
       {...props}
+      className={className}
+      placeholder={placeholder}
+      renderInput={({ field, inputProps: baseInputProps }) => {
+        // Sync with field value
+        useEffect(() => {
+          const value = field.value;
+          if (typeof value === "number" && !isNaN(value) && value >= 0) {
+            const newDigits = secondsToDigitsString(value);
+            setDigits(newDigits);
+          } else if (value === 0 || value === null || value === undefined) {
+            setDigits("");
+          }
+        }, [field.value]);
+
+        return (
+          <input
+            {...baseInputProps}
+            ref={inputRef}
+            type="text"
+            inputMode="numeric"
+            value={formatDigitsToTimeDisplay(digits)}
+            onBeforeInput={(e) => e.preventDefault()}
+            onKeyDown={(e) => handleKeyDown(e, field.onChange)}
+            onBlur={field.onBlur}
+            className={cn(baseInputProps.className, "tabular-nums")}
+          />
+        );
+      }}
     />
   );
 }

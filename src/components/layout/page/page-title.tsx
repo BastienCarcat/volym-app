@@ -21,11 +21,10 @@ export function PageTitle({
   className,
   ...props
 }: PageTitleProps) {
-
   return (
     <div
       className={cn(
-        "flex flex-col w-full py-10 px-24 border-b-1 border-border",
+        "border-border flex w-full flex-col border-b-1 px-24 py-10",
         className
       )}
       {...props}

@@ -1,4 +1,4 @@
-import { confirmEmailSchema } from "@/app/auth/_schemas/confirmEmail.schema";
+import { confirmEmailSchema } from "@/app/auth/_schemas/schemas";
 import { api } from "@/lib/api/apiResponse";
 import { createClient } from "@/lib/supabase/server";
 import { type NextRequest } from "next/server";

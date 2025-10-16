@@ -11,18 +11,10 @@ import { Button } from "@/components/ui/button";
 import { useHookFormAction } from "@next-safe-action/adapter-react-hook-form/hooks";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/form/form";
-import { loginSchema } from "../_schemas/login.schema";
+import { Form } from "@/components/form/form";
+import { loginSchema } from "../_schemas/schemas";
 import { login } from "../_actions/login.action";
-import { Input } from "@/components/form";
+import { Input } from "@/components/form/fields/inputs/input";
 
 export default function LoginPage() {
   const {
@@ -39,7 +31,11 @@ export default function LoginPage() {
     },
     actionProps: {
       onError: ({ error }) => {
-        toast.error(error.serverError);
+        const errorMessage =
+          typeof error.serverError === "string"
+            ? error.serverError
+            : "An error occurred while connecting";
+        toast.error(errorMessage);
       },
     },
   });
@@ -80,56 +76,36 @@ export default function LoginPage() {
                   Or continue with
                 </span>
               </div> */}
-                <div className="grid gap-6">
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="mail@example.com"
-                            type="email"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <Input
+                  name="email"
+                  control={form.control}
+                  type="email"
+                  label="Email"
+                  placeholder="mail@example.com"
+                  required
+                />
 
-                  <FormField
-                    control={form.control}
+                <div className="space-y-2">
+                  <Input
                     name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-
-                        <FormControl>
-                          <Input type="password" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        <FormDescription className="text-right">
-                          <a
-                            href="#"
-                            className="ml-auto text-sm underline-offset-4 hover:underline"
-                          >
-                            Forgot your password?
-                          </a>
-                        </FormDescription>
-                      </FormItem>
-                    )}
+                    control={form.control}
+                    type="password"
+                    label="Password"
+                    required
                   />
-
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    disabled={isExecuting}
-                  >
-                    {isExecuting ? "Logging in..." : "Login"}
-                  </Button>
+                  <div className="text-right">
+                    <a
+                      href="#"
+                      className="text-sm underline-offset-4 hover:underline"
+                    >
+                      Forgot your password?
+                    </a>
+                  </div>
                 </div>
+
+                <Button type="submit" className="w-full" disabled={isExecuting}>
+                  {isExecuting ? "Logging in..." : "Login"}
+                </Button>
                 <div className="text-center text-sm">
                   Don&apos;t have an account?{" "}
                   <a

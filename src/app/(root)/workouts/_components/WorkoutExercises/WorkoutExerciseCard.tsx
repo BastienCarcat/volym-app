@@ -3,7 +3,7 @@
 import { Dumbbell, MoreHorizontal, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { TextareaV2 } from "@/components/form/fields/inputs/textarea-v2";
+import { Textarea } from "@/components/form/fields/inputs/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -103,17 +103,17 @@ export function WorkoutExerciseCard({
   return (
     <Card className="overflow-hidden">
       <CardHeader className="border-b">
-        <div className="flex gap-4 h-full">
+        <div className="flex h-full gap-4">
           {/* Exercise Image */}
-          <div className="flex-shrink-0 h-full">
-            <div className="h-full aspect-square bg-gray-100 rounded-lg overflow-hidden">
+          <div className="h-full flex-shrink-0">
+            <div className="aspect-square h-full overflow-hidden rounded-lg bg-gray-100">
               {image ? (
                 <Image
                   src={image}
                   alt={name || ""}
                   width={120}
                   height={120}
-                  className="w-full h-full object-cover"
+                  className="h-full w-full object-cover"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = "none";
@@ -125,8 +125,8 @@ export function WorkoutExerciseCard({
                   }}
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Dumbbell className="w-8 h-8 text-gray-400" />
+                <div className="flex h-full w-full items-center justify-center">
+                  <Dumbbell className="h-8 w-8 text-gray-400" />
                 </div>
               )}
             </div>
@@ -142,7 +142,7 @@ export function WorkoutExerciseCard({
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm">
-                      <MoreHorizontal className="w-4 h-4" />
+                      <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
@@ -150,7 +150,7 @@ export function WorkoutExerciseCard({
                       onClick={onDelete}
                       className="focus:text-red-600"
                     >
-                      <Trash2 className="w-4 h-4 mr-2 hover:text-red-600" />
+                      <Trash2 className="mr-2 h-4 w-4 hover:text-red-600" />
                       Remove exercise
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -158,14 +158,14 @@ export function WorkoutExerciseCard({
               </CardAction>
             </div>
 
-            <div className="flex items-center gap-2 flex-wrap mb-4">
+            <div className="mb-4 flex flex-wrap items-center gap-2">
               {targetMuscles.map((muscle) => (
                 <Badge
                   key={muscle.id}
                   variant="default"
-                  className="text-xs gap-1"
+                  className="gap-1 text-xs"
                 >
-                  <div className="w-2 h-2 bg-current rounded-full" />
+                  <div className="h-2 w-2 rounded-full bg-current" />
                   {muscle.name}
                 </Badge>
               ))}
@@ -173,15 +173,15 @@ export function WorkoutExerciseCard({
                 <Badge
                   key={muscle.id}
                   variant="secondary"
-                  className="text-xs gap-1"
+                  className="gap-1 text-xs"
                 >
-                  <div className="w-2 h-2 border border-current rounded-full" />
+                  <div className="h-2 w-2 rounded-full border border-current" />
                   {muscle.name}
                 </Badge>
               ))}
             </div>
             <div>
-              <TextareaV2
+              <Textarea
                 name={`exercises.${workoutExerciseIndex}.note`}
                 control={control}
                 placeholder="Add a note"
@@ -196,17 +196,17 @@ export function WorkoutExerciseCard({
         <div className="flex justify-between">
           {/* Sets Table */}
           <div className="">
-            <div className="grid grid-cols-[auto_80px_80px_80px_auto] gap-y-1 gap-x-2 items-center">
+            <div className="grid grid-cols-[auto_80px_80px_80px_auto] items-center gap-x-2 gap-y-1">
               {/* Table Header */}
               <div className="contents">
                 <div className="w-6"></div>
-                <div className="text-center rounded-md text-xs font-semibold text-gray-700">
+                <div className="rounded-md text-center text-xs font-semibold text-gray-700">
                   Kg
                 </div>
-                <div className="text-center rounded-md text-xs font-semibold text-gray-700">
+                <div className="rounded-md text-center text-xs font-semibold text-gray-700">
                   Reps
                 </div>
-                <div className="text-center rounded-md text-xs font-semibold text-gray-700">
+                <div className="rounded-md text-center text-xs font-semibold text-gray-700">
                   Rest
                 </div>
                 <div></div>
@@ -231,17 +231,17 @@ export function WorkoutExerciseCard({
           {/* Stats Panel */}
           <div className="w-48 space-y-4">
             <div className="space-y-2">
-              <div className="flex justify-between items-center">
+              <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Volume</span>
                 <span className="text-sm font-medium">
                   {calculateVolume} <span className="text-gray-400">Kg</span>
                 </span>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Set count</span>
                 <span className="text-sm font-medium">{sets.length}</span>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">
                   Estimated duration
                 </span>

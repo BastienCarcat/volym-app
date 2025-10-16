@@ -45,7 +45,7 @@ export default function WorkoutExercisesList() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-6">
+    <div className="mx-auto max-w-4xl px-6">
       {workoutExercises.map((workoutExercise, index: number) => {
         return (
           <div key={`exercise-${index}`} className="relative">
@@ -55,7 +55,7 @@ export default function WorkoutExercisesList() {
               onDelete={() => handleExerciseRemove(index)}
             />
             {index < workoutExercises.length - 1 && (
-              <div className="flex justify-center my-4">
+              <div className="my-4 flex justify-center">
                 <Separator
                   variant="dashed"
                   orientation="vertical"
@@ -68,7 +68,7 @@ export default function WorkoutExercisesList() {
       })}
 
       {workoutExercises.length > 0 && (
-        <div className="flex justify-center my-4">
+        <div className="my-4 flex justify-center">
           <Separator variant="dashed" orientation="vertical" className="h-8" />
         </div>
       )}

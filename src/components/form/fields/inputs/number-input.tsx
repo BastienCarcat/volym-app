@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import { useController } from "react-hook-form";
-import { InputV2, InputV2Props } from "./input-v2";
+import { Input, InputProps } from "./input";
 
-export interface NumberInputV2Props extends Omit<InputV2Props, "type"> {
+export interface NumberInputProps extends Omit<InputProps, "type"> {
   min?: number;
   max?: number;
   step?: number;
@@ -12,13 +12,13 @@ export interface NumberInputV2Props extends Omit<InputV2Props, "type"> {
 }
 
 /**
- * NumberInputV2 - Number input component based on InputV2
+ * NumberInput - Number input component based on Input
  *
- * A wrapper around InputV2 that handles number conversion automatically.
+ * A wrapper around Input that handles number conversion automatically.
  * Converts string input values to numbers and handles number-specific validation.
  *
  * Usage:
- * <NumberInputV2
+ * <NumberInput
  *   name="exercises.0.sets.1.weight"
  *   control={control}
  *   label="Weight"
@@ -27,7 +27,7 @@ export interface NumberInputV2Props extends Omit<InputV2Props, "type"> {
  *   allowDecimals={true}
  * />
  */
-export function NumberInputV2({
+export function NumberInput({
   name,
   control,
   min,
@@ -35,7 +35,7 @@ export function NumberInputV2({
   step,
   allowDecimals = false,
   ...inputProps
-}: NumberInputV2Props) {
+}: NumberInputProps) {
   const { field, fieldState } = useController({
     name,
     control,
@@ -79,7 +79,7 @@ export function NumberInputV2({
   );
 
   return (
-    <InputV2
+    <Input
       {...inputProps}
       name={name}
       control={control}

@@ -4,7 +4,7 @@ import * as React from "react";
 import { Control } from "react-hook-form";
 import { Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { FieldWrapperV2 } from "../field-wrapper-v2";
+import { FieldWrapper } from "../field-wrapper";
 
 interface TitleInputProps {
   name: string;
@@ -24,9 +24,9 @@ interface TitleInputProps {
 /**
  * TitleInput - Editable title component that displays as a heading when not editing
  * and shows a textarea when editing.
- * 
- * Controlled via FieldWrapperV2 for form integration with React Hook Form.
- * 
+ *
+ * Controlled via FieldWrapper for form integration with React Hook Form.
+ *
  * Usage:
  * <TitleInput
  *   name="title"
@@ -65,7 +65,7 @@ export function TitleInput({
 
   const titleStyles = {
     h1: "text-3xl font-semibold",
-    h2: "text-2xl font-semibold", 
+    h2: "text-2xl font-semibold",
     h3: "text-xl font-semibold",
     h4: "text-lg font-semibold",
     h5: "text-base font-semibold",
@@ -74,7 +74,7 @@ export function TitleInput({
   };
 
   return (
-    <FieldWrapperV2
+    <FieldWrapper
       name={name}
       control={control}
       label={label}
@@ -119,14 +119,14 @@ export function TitleInput({
                 rows={rows}
                 aria-invalid={fieldState.invalid}
                 className={cn(
-                  "bg-transparent border-none outline-none w-full p-0 m-0 focus-visible:ring-0 focus-visible:border-none resize-none overflow-hidden",
+                  "m-0 w-full resize-none overflow-hidden border-none bg-transparent p-0 outline-none focus-visible:border-none focus-visible:ring-0",
                   titleStyles[Component],
                   titleClassName
                 )}
                 {...props}
               />
               {showCharCount && (
-                <div className="text-xs text-muted-foreground">
+                <div className="text-muted-foreground text-xs">
                   {(field.value || "").length}/{maxLength}
                 </div>
               )}
@@ -137,7 +137,7 @@ export function TitleInput({
         return (
           <Component
             className={cn(
-              "cursor-pointer hover:bg-muted/50 rounded-md px-1 py-0.5 -mx-1 transition-colors group truncate",
+              "hover:bg-muted/50 group -mx-1 cursor-pointer truncate rounded-md px-1 py-0.5 transition-colors",
               titleStyles[Component],
               titleClassName
             )}
@@ -145,10 +145,10 @@ export function TitleInput({
             title={field.value || placeholder}
           >
             {field.value || placeholder}
-            <Pencil className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity inline ml-2" />
+            <Pencil className="ml-2 inline h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
           </Component>
         );
       }}
-    </FieldWrapperV2>
+    </FieldWrapper>
   );
 }

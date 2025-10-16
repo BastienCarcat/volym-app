@@ -8,20 +8,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/cards";
-import { Input } from "@/components/form";
 import { signup } from "../_actions/signup.action";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useHookFormAction } from "@next-safe-action/adapter-react-hook-form/hooks";
-import { signupSchema } from "../_schemas/signup.schema";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/form/form";
+import { signupSchema } from "../_schemas/schemas";
+import { Form } from "@/components/form/form";
 import { toast } from "sonner";
+import { Input } from "@/components/form/fields/inputs/input";
 
 export default function SignUpForm() {
   const {
@@ -39,7 +32,11 @@ export default function SignUpForm() {
     },
     actionProps: {
       onError: ({ error }) => {
-        toast.error(error.serverError);
+        const errorMessage =
+          typeof error.serverError === "string"
+            ? error.serverError
+            : "An error occurred while signing up";
+        toast.error(errorMessage);
       },
     },
   });
@@ -82,58 +79,34 @@ export default function SignUpForm() {
                   Or continue with
                 </span>
               </div> */}
-                <div className="grid gap-6">
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="mail@example.com"
-                            type="email"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <Input type="password" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="confirmPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Confirm password</FormLabel>
-                        <FormControl>
-                          <Input type="password" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    disabled={isExecuting}
-                  >
-                    {isExecuting ? "Creating account..." : "Create account"}
-                  </Button>
-                </div>
+                <Input
+                  name="email"
+                  control={form.control}
+                  type="email"
+                  label="Email"
+                  placeholder="mail@example.com"
+                  required
+                />
+
+                <Input
+                  name="password"
+                  control={form.control}
+                  type="password"
+                  label="Password"
+                  required
+                />
+
+                <Input
+                  name="confirmPassword"
+                  control={form.control}
+                  type="password"
+                  label="Confirm password"
+                  required
+                />
+
+                <Button type="submit" className="w-full" disabled={isExecuting}>
+                  {isExecuting ? "Creating account..." : "Create account"}
+                </Button>
                 <div className="text-center text-sm">
                   Already have an account?{" "}
                   <a href="/login" className="underline underline-offset-4">

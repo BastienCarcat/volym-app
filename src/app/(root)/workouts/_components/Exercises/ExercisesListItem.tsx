@@ -13,19 +13,19 @@ export function ExerciseListItem({
 }: ExercisesListItemProps) {
   return (
     <div
-      className="p-4 border rounded-lg hover:bg-accent cursor-pointer transition-colors"
+      className="hover:bg-accent cursor-pointer rounded-lg border p-4 transition-colors"
       onClick={() => onSelect(exercise.id)}
     >
       <div className="flex items-center gap-3">
         {/* Exercise thumbnail */}
-        <div className="flex-shrink-0 w-12 h-12 bg-gray-100 rounded-md overflow-hidden">
+        <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-md bg-gray-100">
           {exercise.image ? (
             <Image
               src={exercise.image}
               alt={exercise.name}
               width={48}
               height={48}
-              className="w-full h-full object-cover"
+              className="h-full w-full object-cover"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.style.display = "none";
@@ -37,17 +37,17 @@ export function ExerciseListItem({
               }}
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Dumbbell className="w-6 h-6 text-gray-400" />
+            <div className="flex h-full w-full items-center justify-center">
+              <Dumbbell className="h-6 w-6 text-gray-400" />
             </div>
           )}
         </div>
 
         {/* Exercise info */}
         <div className="flex-1">
-          <div className="font-medium text-gray-900 mb-1">{exercise.name}</div>
+          <div className="mb-1 font-medium text-gray-900">{exercise.name}</div>
           <div className="flex items-center gap-2 text-sm text-gray-600">
-            <span className="px-2 py-0.5 bg-gray-100 rounded-md text-xs">
+            <span className="rounded-md bg-gray-100 px-2 py-0.5 text-xs">
               {exercise.bodyPart}
             </span>
             <span>•</span>

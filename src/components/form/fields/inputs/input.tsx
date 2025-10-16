@@ -1,9 +1,10 @@
-import * as React from "react";
-import { cva, type VariantProps } from "class-variance-authority";
+"use client";
 
+import * as React from "react";
+import { Control } from "react-hook-form";
+import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import { FieldWrapper } from "../field-wrapper";
-import { BaseFieldProps } from "../types";
 
 const inputVariants = cva(
   "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input w-full min-w-0 rounded-md border bg-transparent shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:border-0 file:bg-transparent file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
@@ -20,35 +21,73 @@ const inputVariants = cva(
   }
 );
 
-export type InputProps = Omit<React.ComponentProps<"input">, "size"> &
-  VariantProps<typeof inputVariants> &
-  BaseFieldProps;
+export interface InputProps
+  extends Omit<React.ComponentProps<"input">, "name" | "size">,
+    VariantProps<typeof inputVariants> {
+  name: string;
+  control: Control<any>;
+  label?: string;
+  description?: string;
+  required?: boolean;
+  className?: string;
+  size?: "default" | "small";
+  renderInput?: (params: {
+    field: any;
+    fieldState: any;
+    inputProps: React.ComponentProps<"input">;
+  }) => React.ReactElement;
+}
 
-function Input({
-  className,
-  type,
-  size,
+/**
+ * Input - Modern input component using FieldWrapper
+ *
+ * Automatically handles field state, validation, and error display.
+ * Perfect for use with React Hook Form and useFieldArray.
+ *
+ * Usage:
+ * <Input
+ *   name="exercises.0.sets.1.weight"
+ *   control={control}
+ *   type="number"
+ *   label="Weight"
+ *   placeholder="0"
+ * />
+ */
+export function Input({
+  name,
+  control,
   label,
-  error,
-  required,
   description,
-  ...props
+  required,
+  className,
+  size = "default",
+  renderInput,
+  ...inputProps
 }: InputProps) {
   return (
     <FieldWrapper
+      name={name}
+      control={control}
       label={label}
-      error={error}
-      required={required}
       description={description}
+      required={required}
     >
-      <input
-        type={type}
-        data-slot="input"
-        className={cn(inputVariants({ size }), className)}
-        {...props}
-      />
+      {({ field, fieldState }) => {
+        const baseInputProps = {
+          ...field,
+          ...inputProps,
+          id: field.name,
+          "aria-invalid": fieldState.invalid,
+          "data-slot": "input" as const,
+          className: cn(inputVariants({ size }), className),
+        };
+
+        if (renderInput) {
+          return renderInput({ field, fieldState, inputProps: baseInputProps });
+        }
+
+        return <input {...baseInputProps} />;
+      }}
     </FieldWrapper>
   );
 }
-
-export { Input };

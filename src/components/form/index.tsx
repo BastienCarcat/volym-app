@@ -7,20 +7,15 @@
  * - Consistent styling using shadcn/ui components
  */
 
+// Export field wrapper
 export { FieldWrapper } from "./fields/field-wrapper";
 
-// Export individual components
+// Export input components
 export { Input } from "./fields/inputs/input";
-export { InputV2 } from "./fields/inputs/input-v2";
-export { NumberInputV2 } from "./fields/inputs/number-input-v2";
+export { NumberInput } from "./fields/inputs/number-input";
 export { TitleInput } from "./fields/inputs/title-input";
 export { Textarea } from "./fields/inputs/textarea";
-export { TextareaV2 } from "./fields/inputs/textarea-v2";
 export { DurationInput } from "./fields/inputs/duration-input";
-export { DurationInputV2 } from "./fields/inputs/duration-input-v2";
-
-// Export new field wrappers
-export { FieldWrapperV2 } from "./fields/field-wrapper-v2";
 
 // Re-export original form components for advanced use cases
 export {
