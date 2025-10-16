@@ -1,6 +1,6 @@
 import { Prisma } from "@/generated/prisma";
 import { z } from "zod";
-import { saveWorkoutSchema } from "./schemas";
+import { workoutWithExercisesSchema } from "./schemas";
 
 export const getWorkoutByIdSelect = Prisma.validator<Prisma.WorkoutSelect>()({
   id: true,
@@ -57,7 +57,7 @@ export interface Exercise {
   }[];
 }
 
-export type WorkoutFormValues = z.infer<typeof saveWorkoutSchema>;
+export type WorkoutFormValues = z.infer<typeof workoutWithExercisesSchema>;
 
 // export interface SetData {
 //   weight: number | null;

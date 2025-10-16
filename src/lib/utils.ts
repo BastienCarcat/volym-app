@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { SafeActionResult } from "next-safe-action";
 import { twMerge } from "tailwind-merge";
+import { z } from "zod";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -13,12 +14,12 @@ export function cn(...inputs: ClassValue[]) {
  * @param action Return value of a server action
  * @returns A boolean indicating if the action is successful
  */
-export const isActionSuccessful = <T>(
-  action?: SafeActionResult<string, any, any, any, any>
+export const isActionSuccessful = <TData, TInput extends z.ZodType>(
+  action?: SafeActionResult<TData, TInput, any, any, any>
 ): action is {
-  data: T;
+  data: TData;
   serverError: undefined;
-  validationErrors: undefined;
+  validationError: undefined;
 } => {
   if (!action) {
     return false;
@@ -36,18 +37,20 @@ export const isActionSuccessful = <T>(
 };
 
 /**
- * Converts an action result to a promise that resolves with the data or rejects with error
+ * Converts an action result to a promise that resolves to false
  *
  * @param action Return value of a server action
- * @returns A promise that resolves with the action data
+ * @returns A promise that resolves to false
  */
-export const resolveActionResult = async <T>(
-  action: Promise<SafeActionResult<string, any, any, any, any> | undefined>
-): Promise<T> => {
+export const resolveActionResult = async <TData, TInput extends z.ZodType>(
+  action: Promise<
+    SafeActionResult<TData, TInput, any, any, any> | undefined
+  >
+): Promise<TData> => {
   return new Promise((resolve, reject) => {
     action
       .then((result) => {
-        if (isActionSuccessful<T>(result)) {
+        if (isActionSuccessful(result)) {
           resolve(result.data);
         } else {
           reject(result?.serverError ?? "Something went wrong");

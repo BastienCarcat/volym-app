@@ -1,6 +1,7 @@
 "use server";
 
-import { ActionError, authActionClient } from "@/lib/nextSafeAction/client";
+import { SafeActionError } from "@/lib/errors";
+import { authActionClient } from "@/lib/nextSafeAction/client";
 import prisma from "@/lib/prisma/prisma";
 import { z } from "zod";
 
@@ -35,7 +36,7 @@ export const addExerciseSet = authActionClient
       !workoutExercise ||
       workoutExercise.workout.createdBy !== user.dbUser.id
     ) {
-      throw new ActionError("Workout exercise not found");
+      throw new SafeActionError("Workout exercise not found");
     }
 
     // First, increment the order of all sets that come after the insertion point

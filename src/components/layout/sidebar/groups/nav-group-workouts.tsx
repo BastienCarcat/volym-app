@@ -3,10 +3,6 @@
 import React, { useCallback } from "react";
 import { Loader2, Plus } from "lucide-react";
 import {
-  useCreateWorkout,
-  useGetWorkouts,
-} from "@/app/(root)/deprecated/_hooks/workout";
-import {
   SidebarGroup,
   SidebarGroupAction,
   SidebarGroupLabel,
@@ -17,20 +13,41 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { createWorkout } from "@/app/(root)/workouts/_actions/create-workout.action";
+import { useAction } from "next-safe-action/hooks";
+import { toast } from "sonner";
+import {
+  useRefreshWorkouts,
+  useWorkouts,
+} from "@/app/(root)/workouts/_hooks/use-workouts";
+
 export function NavGroupWorkouts() {
   const router = useRouter();
-  const { mutate, isPending: createIsPending } = useCreateWorkout({
-    onSuccess: (newWorkout) => {
+  const refreshWorkouts = useRefreshWorkouts();
+
+  const { execute, isPending: createIsPending } = useAction(createWorkout, {
+    onError: ({ error }) => {
+      const serverError = error.serverError;
+
+      toast.error(
+        serverError?.message || "An error occurred while creating workout"
+      );
+    },
+    onSuccess: ({ data: newWorkout }) => {
       router.push(`/workouts/${newWorkout.id}`);
+      void refreshWorkouts();
     },
   });
-  const { data: workouts, isLoading: getIsLoading } = useGetWorkouts();
+
+  const { data, isLoading: getIsLoading } = useWorkouts();
 
   const handleAddWorkout = useCallback(() => {
-    mutate({
+    execute({
       name: "New Workout",
     });
-  }, [mutate]);
+  }, [execute]);
+
+  const workouts = data?.workouts || [];
 
   return (
     <SidebarGroup>

@@ -3,10 +3,11 @@
 import { authActionClient } from "@/lib/nextSafeAction/client";
 import prisma from "@/lib/prisma/prisma";
 import { Prisma } from "@/generated/prisma";
-import { saveWorkoutSchema } from "../schemas";
+import { workoutWithExercisesSchema } from "../schemas";
+import { SafeActionError } from "@/lib/errors";
 
 export const saveWorkout = authActionClient
-  .inputSchema(saveWorkoutSchema)
+  .inputSchema(workoutWithExercisesSchema)
   .action(async ({ parsedInput: input }) => {
     return prisma.$transaction(async (tx) => {
       // 1. Update workout basic info
@@ -24,9 +25,7 @@ export const saveWorkout = authActionClient
       const existingExerciseMap = new Map(existing.map((ex) => [ex.id, ex]));
 
       const exerciseDeletes: string[] = [];
-      const exerciseCreates: Array<
-        Prisma.WorkoutExerciseCreateInput & { tempId?: string }
-      > = [];
+      const exerciseCreates: Array<Prisma.WorkoutExerciseCreateInput> = [];
       const exerciseUpdates: Prisma.WorkoutExerciseUpdateArgs[] = [];
 
       const setDeletes: string[] = [];
@@ -66,7 +65,6 @@ export const saveWorkout = authActionClient
             note: ex.note,
             order: ex.order,
             sets: newSets.length > 0 ? { create: newSets } : undefined,
-            tempId: ex.id, // Store temp ID for reference
           });
         } else {
           // Update existing exercise
@@ -147,20 +145,19 @@ export const saveWorkout = authActionClient
       }
 
       // Set updates
-      batchOperations.push(
-        ...setUpdates.map((q) => tx.exerciseSet.update(q))
-      );
+      batchOperations.push(...setUpdates.map((q) => tx.exerciseSet.update(q)));
 
       // Execute all operations in parallel
       const results = await Promise.allSettled(batchOperations);
-      
+
       // Log any failures
       results.forEach((result, idx) => {
         if (result.status === "rejected") {
-          console.error(`Batch operation ${idx} failed:`, result.reason);
+          throw new SafeActionError(
+            `Batch operation ${idx} failed: ${result.reason}`
+          );
         }
       });
-
 
       // 5. Return updated workout with exercises + sets
       return tx.workout.findUnique({

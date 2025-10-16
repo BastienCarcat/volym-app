@@ -33,9 +33,14 @@ export const workoutExerciseSchema = z.object({
   sets: z.array(exerciseSetSchema),
 });
 
-export const saveWorkoutSchema = z.object({
+export const workoutWithExercisesSchema = z.object({
   id: z.string(),
   name: z.string().min(1),
-  note: z.string().nullable().optional(),
+  note: z.string().nullable(),
   exercises: z.array(workoutExerciseSchema),
+});
+
+export const createWorkoutSchema = z.object({
+  name: z.string().min(1).default("New Workout"),
+  note: z.string().optional(),
 });

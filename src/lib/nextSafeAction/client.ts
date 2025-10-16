@@ -3,23 +3,21 @@ import {
   DEFAULT_SERVER_ERROR_MESSAGE,
 } from "next-safe-action";
 import { getCurrentUser } from "../auth/getUser";
-
-export class ActionError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "ActionError";
-  }
-}
+import { ApplicationError, SafeActionError } from "../errors";
 
 export const actionClient = createSafeActionClient({
   handleServerError(error) {
     console.error("SERVER ERROR:", error);
 
-    if (error instanceof ActionError) {
-      return error.message;
+    if (error instanceof SafeActionError) {
+      return { message: error.message };
     }
 
-    return DEFAULT_SERVER_ERROR_MESSAGE;
+    if (error instanceof ApplicationError) {
+      return { message: error.message, type: error.type };
+    }
+
+    return { message: DEFAULT_SERVER_ERROR_MESSAGE };
   },
 });
 
@@ -27,7 +25,7 @@ export const authActionClient = actionClient.use(async ({ next }) => {
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {
-    throw new ActionError("User not found");
+    throw new SafeActionError("User not found");
   }
 
   return next({ ctx: { user: currentUser } });

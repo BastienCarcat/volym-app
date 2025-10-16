@@ -80,6 +80,9 @@ importers:
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      next-zod-route:
+        specifier: ^1.0.0
+        version: 1.0.0
       react:
         specifier: 19.1.0
         version: 19.1.0
@@ -95,6 +98,9 @@ importers:
       tailwind-merge:
         specifier: ^3.3.1
         version: 3.3.1
+      up-fetch:
+        specifier: ^2.5.0
+        version: 2.5.0
       zod:
         specifier: ^4.1.9
         version: 4.1.9
@@ -2891,6 +2897,10 @@ packages:
       react: ^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc
       react-dom: ^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc
 
+  next-zod-route@1.0.0:
+    resolution: {integrity: sha512-+O6OKGFibU9QeUytQlKRSXu0CmuEDRlQ1FS/gYHqRnsQgU+wktS96JVtyNtG7tOz+JB+z+8fire+3ExXa1Kaow==}
+    engines: {node: '>=18'}
+
   next@15.5.3:
     resolution: {integrity: sha512-r/liNAx16SQj4D+XH/oI1dlpv9tdKJ6cONYPwwcCC46f2NjpaRWY+EKCzULfgQYV6YKXjHBchff2IZBSlZmJNw==}
     engines: {node: ^18.18.0 || ^19.8.0 || >= 20.0.0}
@@ -3618,6 +3628,10 @@ packages:
 
   until-async@3.0.2:
     resolution: {integrity: sha512-IiSk4HlzAMqTUseHHe3VhIGyuFmN90zMTpD3Z3y8jeQbzLIq500MVM7Jq2vUAnTKAFPJrqwkzr6PoTcPhGcOiw==}
+
+  up-fetch@2.5.0:
+    resolution: {integrity: sha512-rzNLKEQqU49+QqPhwcwhYuPL5yZHdJu6UE4gKH5LL+XR0ny8u8UKKHYlePj7973pLb6SWF8ngA+nJsnAvS9iEg==}
+    engines: {node: '>=18'}
 
   update-browserslist-db@1.1.3:
     resolution: {integrity: sha512-UxhIZQ+QInVdunkDAaiazvvT/+fXL5Osr0JZlJulepYu6Jd7qJtDZjlur0emRlT71EN3ScPoE7gvsuIKKNavKw==}
@@ -6684,6 +6698,10 @@ snapshots:
       react: 19.1.0
       react-dom: 19.1.0(react@19.1.0)
 
+  next-zod-route@1.0.0:
+    dependencies:
+      zod: 4.1.9
+
   next@15.5.3(@babel/core@7.28.4)(babel-plugin-macros@3.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
     dependencies:
       '@next/env': 15.5.3
@@ -7555,6 +7573,8 @@ snapshots:
       '@unrs/resolver-binding-win32-x64-msvc': 1.11.1
 
   until-async@3.0.2: {}
+
+  up-fetch@2.5.0: {}
 
   update-browserslist-db@1.1.3(browserslist@4.26.3):
     dependencies:

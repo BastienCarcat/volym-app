@@ -1,8 +1,9 @@
 "use server";
 
-import { authActionClient, ActionError } from "@/lib/nextSafeAction/client";
+import { authActionClient } from "@/lib/nextSafeAction/client";
 import { createWorkoutSchema } from "../../_schemas/createWorkout.schema";
 import prisma from "@/lib/prisma/prisma";
+import { SafeActionError } from "@/lib/errors";
 
 export const createWorkout = authActionClient
   .inputSchema(createWorkoutSchema)
@@ -16,7 +17,7 @@ export const createWorkout = authActionClient
     });
 
     if (!workout) {
-      throw new ActionError("Can't create workout");
+      throw new SafeActionError("Can't create workout");
     }
 
     return workout;
