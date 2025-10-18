@@ -37,8 +37,13 @@ export const queryKeys = {
   exercises: {
     all: ["exercises"] as const,
     lists: () => [...queryKeys.exercises.all, "list"] as const,
-    list: (filters: Record<string, any>) =>
-      [...queryKeys.exercises.lists(), { filters }] as const,
+    list: (filters: {
+      bodyPart?: string;
+      query?: string;
+      equipment?: string;
+      offset?: number;
+      number?: number;
+    }) => [...queryKeys.exercises.lists(), { filters }] as const,
     details: () => [...queryKeys.exercises.all, "detail"] as const,
     detail: (id: string) => [...queryKeys.exercises.details(), id] as const,
     sets: (exerciseId: string) =>

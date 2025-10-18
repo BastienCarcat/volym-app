@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "gym-fit.s3.fr-par.scw.cloud",
         port: "",
-        pathname: "/public/exercises/images/**",
+        pathname: "/public/exercises/**",
       },
     ],
   },

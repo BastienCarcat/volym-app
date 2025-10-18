@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { BodyPart } from "./types";
+
+// *********** Volym **************
 
 export const exerciseSetSchema = z.object({
   id: z.uuidv4().optional(), // Optional for new sets
@@ -43,4 +46,40 @@ export const workoutWithExercisesSchema = z.object({
 export const createWorkoutSchema = z.object({
   name: z.string().min(1).default("New Workout"),
   note: z.string().optional(),
+});
+
+// *********** GymFit **************
+
+export const gymFitMinimalExerciseSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  bodyPart: z.enum(BodyPart),
+  image: z.string(),
+});
+
+export const gymFitSearchExercisesResponseSchema = z.object({
+  results: z.array(gymFitMinimalExerciseSchema),
+});
+
+export const gymFitMuscleSchema = z.object({
+  id: z.string(),
+  bodyPart: z.enum(BodyPart),
+  name: z.string(),
+  group: z.string().nullable(),
+});
+
+export const gymFitExerciseSchema = z.object({
+  name: z.string(),
+  targetMuscles: z.array(gymFitMuscleSchema),
+  secondaryMuscles: z.array(gymFitMuscleSchema),
+  equipment: z.string(), //TODO: make enum
+  bodyPart: z.enum(BodyPart),
+  image: z.string(),
+  variations: z.array(gymFitMinimalExerciseSchema),
+  instructions: z.array(
+    z.object({
+      order: z.number(),
+      description: z.string(),
+    })
+  ),
 });

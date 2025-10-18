@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ExerciseSetRow } from "./ExerciseSetRow";
 import type { WorkoutFormValues } from "../../types";
-import { exercisesData } from "../../MockData";
+import { useExercise } from "../../_hooks/use-exercises";
 import {
   FieldArrayWithId,
   useFieldArray,
@@ -40,7 +40,6 @@ export function WorkoutExerciseCard({
   onDelete,
   workoutExerciseIndex,
 }: WorkoutExerciseCardProps) {
-  //TODO: Make better typing
   const { control } = useFormContext<WorkoutFormValues>();
 
   const {
@@ -51,6 +50,10 @@ export function WorkoutExerciseCard({
     control,
     name: `exercises.${workoutExerciseIndex}.sets`,
   });
+
+  const { data: exerciseInfo, isLoading: isLoadingExercise } = useExercise(
+    workoutExercise.exerciseId
+  );
 
   const handleSetRemove = (index: number) => {
     remove(index);
@@ -68,14 +71,13 @@ export function WorkoutExerciseCard({
     append(newSet);
   };
 
-  const exerciseInfo = exercisesData.find(
-    (ex) => ex.id === workoutExercise.exerciseId
-  );
-
+  // These fields are available immediately from cache (MinimalExercise)
   const name = exerciseInfo?.name;
-  const image = exerciseInfo?.image;
-  const targetMuscles = exerciseInfo?.targetMuscles || [];
-  const secondaryMuscles = exerciseInfo?.secondaryMuscles || [];
+  const bodyPart = exerciseInfo?.bodyPart;
+  const image =
+    exerciseInfo?.image && exerciseInfo.image !== "image_coming_soon"
+      ? exerciseInfo.image
+      : null;
 
   const watchedSets = useWatch({
     control,
@@ -99,6 +101,28 @@ export function WorkoutExerciseCard({
     const executionTime = watchedSets.length * 30; // Assume 30 seconds per set
     return Math.round((totalRestTime + executionTime) / 60);
   }, [watchedSets]);
+
+  // Only show skeleton if there's NO data at all (not even from cache)
+  if (isLoadingExercise && !exerciseInfo) {
+    return (
+      <Card className="overflow-hidden">
+        <CardHeader className="border-b">
+          <div className="flex h-full gap-4">
+            <div className="h-full flex-shrink-0">
+              <div className="aspect-square h-full w-[120px] animate-pulse overflow-hidden rounded-lg bg-gray-200" />
+            </div>
+            <div className="flex-1 space-y-3">
+              <div className="h-6 w-3/4 animate-pulse rounded bg-gray-200" />
+              <div className="flex gap-2">
+                <div className="h-6 w-20 animate-pulse rounded-full bg-gray-200" />
+                <div className="h-6 w-20 animate-pulse rounded-full bg-gray-200" />
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
+    );
+  }
 
   return (
     <Card className="overflow-hidden">
@@ -159,26 +183,9 @@ export function WorkoutExerciseCard({
             </div>
 
             <div className="mb-4 flex flex-wrap items-center gap-2">
-              {targetMuscles.map((muscle) => (
-                <Badge
-                  key={muscle.id}
-                  variant="default"
-                  className="gap-1 text-xs"
-                >
-                  <div className="h-2 w-2 rounded-full bg-current" />
-                  {muscle.name}
-                </Badge>
-              ))}
-              {secondaryMuscles.map((muscle) => (
-                <Badge
-                  key={muscle.id}
-                  variant="secondary"
-                  className="gap-1 text-xs"
-                >
-                  <div className="h-2 w-2 rounded-full border border-current" />
-                  {muscle.name}
-                </Badge>
-              ))}
+              <Badge variant="secondary" className="gap-1 text-xs">
+                {bodyPart}
+              </Badge>
             </div>
             <div>
               <Textarea

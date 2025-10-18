@@ -1,9 +1,9 @@
 import Image from "next/image";
 import { Dumbbell } from "lucide-react";
-import { Exercise } from "../../types";
+import { GymFitMinimalExercise } from "../../types";
 
 interface ExercisesListItemProps {
-  exercise: Exercise;
+  exercise: GymFitMinimalExercise;
   onSelect: (exerciseId: string) => void;
 }
 
@@ -19,7 +19,7 @@ export function ExerciseListItem({
       <div className="flex items-center gap-3">
         {/* Exercise thumbnail */}
         <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-md bg-gray-100">
-          {exercise.image ? (
+          {exercise.image && exercise.image !== "image_coming_soon" ? (
             <Image
               src={exercise.image}
               alt={exercise.name}
@@ -50,8 +50,6 @@ export function ExerciseListItem({
             <span className="rounded-md bg-gray-100 px-2 py-0.5 text-xs">
               {exercise.bodyPart}
             </span>
-            <span>•</span>
-            <span>{exercise.equipment}</span>
           </div>
         </div>
       </div>
