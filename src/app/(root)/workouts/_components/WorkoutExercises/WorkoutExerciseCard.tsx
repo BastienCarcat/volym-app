@@ -3,7 +3,7 @@
 import { Dumbbell, MoreHorizontal, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/form/fields/inputs/textarea";
+import { Textarea, FieldWrapper } from "@/components/form";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -188,12 +188,20 @@ export function WorkoutExerciseCard({
               </Badge>
             </div>
             <div>
-              <Textarea
+              <FieldWrapper
                 name={`exercises.${workoutExerciseIndex}.note`}
                 control={control}
-                placeholder="Add a note"
-                className="h-16 resize-none text-sm"
-              />
+              >
+                {(props) => (
+                  <Textarea
+                    {...props.field}
+                    value={props.field.value || ""}
+                    aria-invalid={props.fieldState.invalid}
+                    placeholder="Add a note"
+                    className="h-16 resize-none text-sm"
+                  />
+                )}
+              </FieldWrapper>
             </div>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import { NavGroupWorkouts } from "@/components/layout/sidebar/groups/nav-group-workouts";
+import { NavGroupPrograms } from "@/components/layout/sidebar/groups/nav-group-programs";
 import { NavUser } from "@/components/layout/sidebar/nav-user";
 import {
   Sidebar,
@@ -25,6 +26,7 @@ export async function AppSidebar({
       </SidebarHeader>
       <SidebarSeparator />
       <SidebarContent>
+        <NavGroupPrograms />
         <NavGroupWorkouts />
       </SidebarContent>
       <SidebarSeparator />

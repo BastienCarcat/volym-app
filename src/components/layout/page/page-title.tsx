@@ -2,7 +2,7 @@
 import * as React from "react";
 import { Control } from "react-hook-form";
 import { cn } from "@/lib/utils";
-import { TitleInput } from "@/components/form";
+import { TitleInput, FieldWrapper } from "@/components/form";
 
 interface PageTitleProps extends React.ComponentProps<"div"> {
   control: Control<any>;
@@ -30,27 +30,33 @@ export function PageTitle({
       {...props}
     >
       <div className="mb-2">
-        <TitleInput
-          name={titleName}
-          control={control}
-          placeholder="Enter title"
-          maxLength={maxTitleChars}
-          showCharCount
-          as="h1"
-        />
+        <FieldWrapper name={titleName} control={control}>
+          {(props) => (
+            <TitleInput
+              {...props.field}
+              placeholder="Enter title"
+              maxLength={maxTitleChars}
+              showCharCount
+              as="h1"
+            />
+          )}
+        </FieldWrapper>
       </div>
 
       <div>
-        <TitleInput
-          name={descriptionName}
-          control={control}
-          placeholder="Add a note"
-          maxLength={maxDescriptionChars}
-          showCharCount
-          rows={3}
-          as="p"
-          titleClassName="text-muted-foreground"
-        />
+        <FieldWrapper name={descriptionName} control={control}>
+          {(props) => (
+            <TitleInput
+              {...props.field}
+              placeholder="Add a note"
+              maxLength={maxDescriptionChars}
+              showCharCount
+              rows={3}
+              as="p"
+              titleClassName="text-muted-foreground"
+            />
+          )}
+        </FieldWrapper>
       </div>
     </div>
   );

@@ -1,17 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { Control } from "react-hook-form";
 import { Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { FieldWrapper } from "../field-wrapper";
 
-interface TitleInputProps {
-  name: string;
-  control: Control<any>;
-  label?: string;
-  description?: string;
-  required?: boolean;
+export interface TitleInputProps {
+  value?: string;
+  onChange?: (value: string) => void;
+  onBlur?: () => void;
   className?: string;
   titleClassName?: string;
   placeholder?: string;
@@ -25,130 +21,126 @@ interface TitleInputProps {
  * TitleInput - Editable title component that displays as a heading when not editing
  * and shows a textarea when editing.
  *
- * Controlled via FieldWrapper for form integration with React Hook Form.
+ * Use with FieldWrapper or Controller for form integration.
  *
- * Usage:
- * <TitleInput
- *   name="title"
- *   control={control}
- *   placeholder="Enter title"
- *   as="h1"
- *   maxLength={70}
- *   showCharCount
- *   rows={1}
- * />
+ * @example
+ * // With FieldWrapper
+ * <FieldWrapper name="title" control={control}>
+ *   {(props) => (
+ *     <TitleInput
+ *       {...props.field}
+ *       as="h1"
+ *       placeholder="Enter title"
+ *       maxLength={70}
+ *     />
+ *   )}
+ * </FieldWrapper>
  */
-export function TitleInput({
-  name,
-  control,
-  label,
-  description,
-  required,
-  className,
-  titleClassName,
-  placeholder = "Enter title",
-  maxLength = 100,
-  showCharCount = false,
-  rows = 1,
-  as: Component = "h1",
-  ...props
-}: TitleInputProps) {
-  const [isEditing, setIsEditing] = React.useState(false);
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+export const TitleInput = React.forwardRef<HTMLTextAreaElement, TitleInputProps>(
+  (
+    {
+      value,
+      onChange,
+      onBlur,
+      className,
+      titleClassName,
+      placeholder = "Enter title",
+      maxLength = 100,
+      showCharCount = false,
+      rows = 1,
+      as: Component = "h1",
+    },
+    ref
+  ) => {
+    const [isEditing, setIsEditing] = React.useState(false);
+    const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
-  React.useEffect(() => {
-    if (isEditing && textareaRef.current) {
-      textareaRef.current.focus();
-      textareaRef.current.select();
-    }
-  }, [isEditing]);
+    // Merge refs
+    React.useImperativeHandle(ref, () => textareaRef.current!);
 
-  const titleStyles = {
-    h1: "text-3xl font-semibold",
-    h2: "text-2xl font-semibold",
-    h3: "text-xl font-semibold",
-    h4: "text-lg font-semibold",
-    h5: "text-base font-semibold",
-    h6: "text-sm font-semibold",
-    p: "text-base",
-  };
+    React.useEffect(() => {
+      if (isEditing && textareaRef.current) {
+        textareaRef.current.focus();
+        textareaRef.current.select();
+      }
+    }, [isEditing]);
 
-  return (
-    <FieldWrapper
-      name={name}
-      control={control}
-      label={label}
-      description={description}
-      required={required}
-      className={className}
-    >
-      {({ field, fieldState }) => {
-        const handleSubmit = () => {
-          setIsEditing(false);
-          if (!field.value?.trim()) {
-            field.onChange("");
-          }
-        };
+    const titleStyles = {
+      h1: "text-3xl font-semibold",
+      h2: "text-2xl font-semibold",
+      h3: "text-xl font-semibold",
+      h4: "text-lg font-semibold",
+      h5: "text-base font-semibold",
+      h6: "text-sm font-semibold",
+      p: "text-base",
+    };
 
-        const handleKeyDown = (e: React.KeyboardEvent) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            handleSubmit();
-          } else if (e.key === "Escape") {
-            setIsEditing(false);
-          }
-        };
+    const handleSubmit = () => {
+      setIsEditing(false);
+      if (!value?.trim()) {
+        onChange?.("");
+      }
+      onBlur?.();
+    };
 
-        const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-          if (e.target.value.length <= maxLength) {
-            field.onChange(e.target.value);
-          }
-        };
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleSubmit();
+      } else if (e.key === "Escape") {
+        setIsEditing(false);
+      }
+    };
 
-        if (isEditing) {
-          return (
-            <div className="space-y-1">
-              <textarea
-                {...field}
-                ref={textareaRef}
-                onChange={handleChange}
-                onBlur={handleSubmit}
-                onKeyDown={handleKeyDown}
-                placeholder={placeholder}
-                maxLength={maxLength}
-                rows={rows}
-                aria-invalid={fieldState.invalid}
-                className={cn(
-                  "m-0 w-full resize-none overflow-hidden border-none bg-transparent p-0 outline-none focus-visible:border-none focus-visible:ring-0",
-                  titleStyles[Component],
-                  titleClassName
-                )}
-                {...props}
-              />
-              {showCharCount && (
-                <div className="text-muted-foreground text-xs">
-                  {(field.value || "").length}/{maxLength}
-                </div>
-              )}
-            </div>
-          );
-        }
+    const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      if (e.target.value.length <= maxLength) {
+        onChange?.(e.target.value);
+      }
+    };
 
-        return (
-          <Component
+    if (isEditing) {
+      return (
+        <div className={cn("space-y-1", className)}>
+          <textarea
+            ref={textareaRef}
+            value={value || ""}
+            onChange={handleChange}
+            onBlur={handleSubmit}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            maxLength={maxLength}
+            rows={rows}
             className={cn(
-              "hover:bg-muted/50 group -mx-1 cursor-pointer truncate rounded-md px-1 py-0.5 transition-colors",
+              "m-0 w-full resize-none overflow-hidden border-none bg-transparent p-0 outline-none focus-visible:border-none focus-visible:ring-0",
               titleStyles[Component],
               titleClassName
             )}
-            onClick={() => setIsEditing(true)}
-            title={field.value || placeholder}
-          >
-            {field.value || placeholder}
-            <Pencil className="ml-2 inline h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
-          </Component>
-        );
-      }}
-    </FieldWrapper>
-  );
-}
+          />
+          {showCharCount && (
+            <div className="text-muted-foreground text-xs">
+              {(value || "").length}/{maxLength}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <Component
+        className={cn(
+          "hover:bg-muted/50 group -mx-1 cursor-pointer truncate rounded-md px-1 py-0.5 transition-colors",
+          titleStyles[Component],
+          titleClassName,
+          className
+        )}
+        onClick={() => setIsEditing(true)}
+        title={value || placeholder}
+      >
+        {value || placeholder}
+        <Pencil className="ml-2 inline h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
+      </Component>
+    );
+  }
+);
+
+TitleInput.displayName = "TitleInput";

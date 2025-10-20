@@ -3,10 +3,10 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Minus, Plus, Trash2 } from "lucide-react";
+import { Minus, Plus } from "lucide-react";
 import { WorkoutFormValues } from "../../types";
 import { FieldArrayWithId, useFormContext } from "react-hook-form";
-import { NumberInput, DurationInput } from "@/components/form";
+import { NumberInput, DurationInput, FieldWrapper } from "@/components/form";
 
 interface ExerciseSetRowProps {
   set: FieldArrayWithId<WorkoutFormValues, `exercises.${number}.sets`, "id">;
@@ -38,28 +38,50 @@ export function ExerciseSetRow({
           {setIndex + 1}
         </Badge>
 
-        <NumberInput
+        <FieldWrapper
           name={`exercises.${workoutExerciseIndex}.sets.${setIndex}.weight`}
           control={control}
-          placeholder="0"
-          min={0}
-          className="text-right"
-        />
+        >
+          {(props) => (
+            <NumberInput
+              {...props.field}
+              aria-invalid={props.fieldState.invalid}
+              placeholder="0"
+              min={0}
+              className="text-right"
+              allowDecimals
+            />
+          )}
+        </FieldWrapper>
 
-        <NumberInput
+        <FieldWrapper
           name={`exercises.${workoutExerciseIndex}.sets.${setIndex}.reps`}
           control={control}
-          placeholder="0"
-          min={0}
-          className="text-right"
-        />
+        >
+          {(props) => (
+            <NumberInput
+              {...props.field}
+              aria-invalid={props.fieldState.invalid}
+              placeholder="0"
+              min={0}
+              className="text-right"
+            />
+          )}
+        </FieldWrapper>
 
-        <DurationInput
+        <FieldWrapper
           name={`exercises.${workoutExerciseIndex}.sets.${setIndex}.rest`}
           control={control}
-          placeholder="0:00"
-          className="text-right"
-        />
+        >
+          {(props) => (
+            <DurationInput
+              {...props.field}
+              aria-invalid={props.fieldState.invalid}
+              placeholder="0:00"
+              className="text-right"
+            />
+          )}
+        </FieldWrapper>
 
         <div className="flex items-center gap-1">
           <Button

@@ -58,7 +58,7 @@ export function FieldWrapper({
           {label && (
             <FieldLabel htmlFor={field.name}>
               {label}
-              {required && <span className="text-destructive ml-1">*</span>}
+              {required && <span className="text-destructive">*</span>}
             </FieldLabel>
           )}
 

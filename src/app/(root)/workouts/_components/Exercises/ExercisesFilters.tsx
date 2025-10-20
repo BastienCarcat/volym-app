@@ -2,8 +2,7 @@
 
 import * as React from "react";
 import { useForm } from "react-hook-form";
-import { Input } from "@/components/form/fields/inputs/input";
-import { SelectInput } from "@/components/form/fields/inputs/select-input";
+import { Input, SelectInput, FieldWrapper } from "@/components/form";
 import { BodyPart } from "../../types";
 
 export interface ExercisesFiltersValues {
@@ -66,31 +65,43 @@ export function ExercisesFilters({ onFiltersChange }: ExercisesFiltersProps) {
 
   return (
     <div className="space-y-4 px-6">
-      <Input
-        name="query"
-        control={control}
-        type="text"
-        placeholder="Search exercises..."
-      />
+      <FieldWrapper name="query" control={control}>
+        {(props) => (
+          <Input
+            {...props.field}
+            aria-invalid={props.fieldState.invalid}
+            type="text"
+            placeholder="Search exercises..."
+          />
+        )}
+      </FieldWrapper>
 
       <div className="grid grid-cols-2 gap-3">
-        <SelectInput
-          name="bodyPart"
-          control={control}
-          placeholder="All Body Parts"
-          options={BODY_PART_OPTIONS}
-          size="sm"
-          clearable
-        />
+        <FieldWrapper name="bodyPart" control={control}>
+          {(props) => (
+            <SelectInput
+              {...props.field}
+              aria-invalid={props.fieldState.invalid}
+              placeholder="All Body Parts"
+              options={BODY_PART_OPTIONS}
+              size="sm"
+              clearable
+            />
+          )}
+        </FieldWrapper>
 
-        <SelectInput
-          name="equipment"
-          control={control}
-          placeholder="All Equipment"
-          options={EQUIPMENT_OPTIONS}
-          size="sm"
-          clearable
-        />
+        <FieldWrapper name="equipment" control={control}>
+          {(props) => (
+            <SelectInput
+              {...props.field}
+              aria-invalid={props.fieldState.invalid}
+              placeholder="All Equipment"
+              options={EQUIPMENT_OPTIONS}
+              size="sm"
+              clearable
+            />
+          )}
+        </FieldWrapper>
       </div>
     </div>
   );

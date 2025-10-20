@@ -9,143 +9,141 @@ import {
 } from "@/lib/utils";
 import { Input, InputProps } from "./input";
 
-export interface DurationInputProps
-  extends Omit<InputProps, "onChange" | "value"> {}
+export interface DurationInputProps extends Omit<InputProps, "type" | "value" | "onChange"> {
+  value?: number | null;
+  onChange?: (value: number) => void;
+}
 
 /**
- * DurationInput - Duration input component extending Input
+ * DurationInput - Duration input component with MM:SS format
  *
- * Inherits all Input functionality while adding duration-specific behavior.
  * Accepts input in seconds and displays as MM:SS format.
+ * Use with FieldWrapper or Controller for form integration.
  *
- * Usage:
- * <DurationInput
- *   name="exercises.0.sets.1.rest"
- *   control={control}
- *   label="Rest time"
- *   placeholder="0:00"
- * />
+ * @example
+ * // With FieldWrapper
+ * <FieldWrapper name="rest" control={control} label="Rest time">
+ *   {(props) => (
+ *     <DurationInput
+ *       {...props.field}
+ *       aria-invalid={props.fieldState.invalid}
+ *       placeholder="0:00"
+ *     />
+ *   )}
+ * </FieldWrapper>
  */
-export function DurationInput({
-  className,
-  placeholder = "0:00",
-  ...props
-}: DurationInputProps) {
-  const [digits, setDigits] = useState<string>("");
-  const inputRef = useRef<HTMLInputElement>(null);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+export const DurationInput = React.forwardRef<HTMLInputElement, DurationInputProps>(
+  ({ value, onChange, onBlur, className, placeholder = "0:00", ...props }, ref) => {
+    const [digits, setDigits] = useState<string>("");
+    const inputRef = useRef<HTMLInputElement>(null);
+    const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Debounced function to call onChange
-  const debouncedOnChange = useCallback(
-    (seconds: number, onChange: (value: number) => void) => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
+    // Merge refs
+    React.useImperativeHandle(ref, () => inputRef.current!);
+
+    // Sync with value prop
+    useEffect(() => {
+      if (typeof value === "number" && !isNaN(value) && value >= 0) {
+        const newDigits = secondsToDigitsString(value);
+        setDigits(newDigits);
+      } else if (value === 0 || value === null || value === undefined) {
+        setDigits("");
       }
+    }, [value]);
 
-      debounceTimerRef.current = setTimeout(() => {
-        onChange(seconds);
-      }, 1000);
-    },
-    []
-  );
+    // Debounced onChange
+    const debouncedOnChange = useCallback(
+      (seconds: number) => {
+        if (debounceTimerRef.current) {
+          clearTimeout(debounceTimerRef.current);
+        }
 
-  // Cleanup timer on unmount
-  useEffect(() => {
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
-  }, []);
+        debounceTimerRef.current = setTimeout(() => {
+          onChange?.(seconds);
+        }, 1000);
+      },
+      [onChange]
+    );
 
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    onChange: (value: number) => void
-  ) => {
-    // Handle deletion
-    if (e.key === "Backspace" || e.key === "Delete") {
-      e.preventDefault();
-      const newDigits = digits.slice(0, -1);
-      setDigits(newDigits);
-      debouncedOnChange(parseDigitsToSeconds(newDigits), onChange);
-      return;
-    }
+    // Cleanup timer on unmount
+    useEffect(() => {
+      return () => {
+        if (debounceTimerRef.current) {
+          clearTimeout(debounceTimerRef.current);
+        }
+      };
+    }, []);
 
-    // Allow navigation keys
-    const navigationKeys = [
-      "Tab",
-      "Escape",
-      "Enter",
-      "ArrowLeft",
-      "ArrowRight",
-      "ArrowUp",
-      "ArrowDown",
-    ];
-
-    if (navigationKeys.includes(e.key)) {
-      return;
-    }
-
-    // Handle digit input
-    if (/^[0-9]$/.test(e.key)) {
-      e.preventDefault();
-
-      // Limit to 4 digits (max 99:59)
-      if (digits.length >= 4) {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      // Handle deletion
+      if (e.key === "Backspace" || e.key === "Delete") {
+        e.preventDefault();
+        const newDigits = digits.slice(0, -1);
+        setDigits(newDigits);
+        debouncedOnChange(parseDigitsToSeconds(newDigits));
         return;
       }
 
-      const newDigits = digits + e.key;
-      setDigits(newDigits);
-      debouncedOnChange(parseDigitsToSeconds(newDigits), onChange);
+      // Allow navigation keys
+      const navigationKeys = [
+        "Tab",
+        "Escape",
+        "Enter",
+        "ArrowLeft",
+        "ArrowRight",
+        "ArrowUp",
+        "ArrowDown",
+      ];
 
-      return;
-    }
+      if (navigationKeys.includes(e.key)) {
+        return;
+      }
 
-    // Block all other keys
-    e.preventDefault();
-  };
+      // Handle digit input
+      if (/^[0-9]$/.test(e.key)) {
+        e.preventDefault();
 
-  // Keep cursor at the end
-  useEffect(() => {
-    if (inputRef.current) {
-      const input = inputRef.current;
-      const length = input.value.length;
-      input.setSelectionRange(length, length);
-    }
-  });
+        // Limit to 4 digits (max 99:59)
+        if (digits.length >= 4) {
+          return;
+        }
 
-  return (
-    <Input
-      {...props}
-      className={className}
-      placeholder={placeholder}
-      renderInput={({ field, inputProps: baseInputProps }) => {
-        // Sync with field value
-        useEffect(() => {
-          const value = field.value;
-          if (typeof value === "number" && !isNaN(value) && value >= 0) {
-            const newDigits = secondsToDigitsString(value);
-            setDigits(newDigits);
-          } else if (value === 0 || value === null || value === undefined) {
-            setDigits("");
-          }
-        }, [field.value]);
+        const newDigits = digits + e.key;
+        setDigits(newDigits);
+        debouncedOnChange(parseDigitsToSeconds(newDigits));
 
-        return (
-          <input
-            {...baseInputProps}
-            ref={inputRef}
-            type="text"
-            inputMode="numeric"
-            value={formatDigitsToTimeDisplay(digits)}
-            onBeforeInput={(e) => e.preventDefault()}
-            onKeyDown={(e) => handleKeyDown(e, field.onChange)}
-            onBlur={field.onBlur}
-            className={cn(baseInputProps.className, "tabular-nums")}
-          />
-        );
-      }}
-    />
-  );
-}
+        return;
+      }
+
+      // Block all other keys
+      e.preventDefault();
+    };
+
+    // Keep cursor at the end
+    useEffect(() => {
+      if (inputRef.current) {
+        const input = inputRef.current;
+        const length = input.value.length;
+        input.setSelectionRange(length, length);
+      }
+    });
+
+    return (
+      <Input
+        {...props}
+        ref={inputRef}
+        type="text"
+        inputMode="numeric"
+        value={formatDigitsToTimeDisplay(digits)}
+        onChange={() => {}} // Prevent read-only warning (input is controlled via onKeyDown)
+        onBeforeInput={(e) => e.preventDefault()}
+        onKeyDown={handleKeyDown}
+        onBlur={onBlur}
+        placeholder={placeholder}
+        className={cn(className, "tabular-nums")}
+      />
+    );
+  }
+);
+
+DurationInput.displayName = "DurationInput";

@@ -1,8 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { Control, useController } from "react-hook-form";
-import { FieldWrapper } from "../field-wrapper";
 import {
   Select,
   SelectContent,
@@ -19,102 +17,94 @@ export interface SelectOption {
 }
 
 export interface SelectInputProps {
-  name: string;
-  control: Control<any>;
-  label?: string;
-  description?: string;
-  required?: boolean;
+  value?: string | null;
+  onChange?: (value: string | null) => void;
+  onBlur?: () => void;
   className?: string;
   placeholder?: string;
   options: SelectOption[];
   size?: "sm" | "default";
   clearable?: boolean;
+  "aria-invalid"?: boolean;
 }
 
 /**
- * SelectInput - Select input component integrated with React Hook Form
+ * SelectInput - Select component integrated for forms
  *
- * A wrapper around shadcn Select component that works with React Hook Form.
- * Handles field state, validation, and error display automatically.
+ * A wrapper around shadcn Select component with form-friendly API.
+ * Use with FieldWrapper or Controller for form integration.
  *
- * Usage:
- * <SelectInput
- *   name="bodyPart"
- *   control={control}
- *   label="Body Part"
- *   placeholder="Select body part"
- *   options={[
- *     { value: "chest", label: "Chest" },
- *     { value: "back", label: "Back" }
- *   ]}
- * />
+ * @example
+ * // With FieldWrapper
+ * <FieldWrapper name="bodyPart" control={control} label="Body Part">
+ *   {(props) => (
+ *     <SelectInput
+ *       {...props.field}
+ *       aria-invalid={props.fieldState.invalid}
+ *       placeholder="Select body part"
+ *       options={bodyPartOptions}
+ *     />
+ *   )}
+ * </FieldWrapper>
  */
-export function SelectInput({
-  name,
-  control,
-  label,
-  description,
-  required,
-  className,
-  placeholder = "Select an option",
-  options,
-  size = "default",
-  clearable = false,
-}: SelectInputProps) {
-  const { field, fieldState } = useController({
-    name,
-    control,
-  });
+export const SelectInput = React.forwardRef<HTMLButtonElement, SelectInputProps>(
+  (
+    {
+      value,
+      onChange,
+      onBlur,
+      className,
+      placeholder = "Select an option",
+      options,
+      size = "default",
+      clearable = false,
+      "aria-invalid": ariaInvalid,
+    },
+    ref
+  ) => {
+    const handleClear = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onChange?.(null);
+    };
 
-  const handleClear = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    field.onChange(null);
-  };
-
-  return (
-    <FieldWrapper
-      name={name}
-      control={control}
-      label={label}
-      description={description}
-      required={required}
-      className={className}
-    >
-      {() => (
-        <div className="relative">
-          <Select
-            value={field.value || ""}
-            onValueChange={(value) => {
-              field.onChange(value === "" ? null : value);
-            }}
+    return (
+      <div className={cn("relative", className)}>
+        <Select
+          value={value || ""}
+          onValueChange={(newValue) => {
+            onChange?.(newValue === "" ? null : newValue);
+          }}
+        >
+          <SelectTrigger
+            ref={ref}
+            size={size}
+            className={cn("w-full", ariaInvalid && "border-destructive")}
+            aria-invalid={ariaInvalid}
+            onBlur={onBlur}
           >
-            <SelectTrigger
-              size={size}
-              className={cn("w-full", fieldState.invalid && "border-destructive")}
-              aria-invalid={fieldState.invalid}
-            >
-              <SelectValue placeholder={placeholder} />
-            </SelectTrigger>
-            <SelectContent>
-              {options.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {clearable && field.value && (
-            <button
-              type="button"
-              onClick={handleClear}
-              className="absolute right-8 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-              aria-label="Clear selection"
-            >
-              <X className="size-4" />
-            </button>
-          )}
-        </div>
-      )}
-    </FieldWrapper>
-  );
-}
+            <SelectValue placeholder={placeholder} />
+          </SelectTrigger>
+          <SelectContent>
+            {options.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {clearable && value && (
+          <button
+            type="button"
+            onClick={handleClear}
+            className="absolute right-8 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Clear selection"
+          >
+            <X className="size-4" />
+          </button>
+        )}
+      </div>
+    );
+  }
+);
+
+SelectInput.displayName = "SelectInput";
