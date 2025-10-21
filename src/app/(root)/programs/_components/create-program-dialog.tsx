@@ -17,8 +17,9 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/form/fields/inputs/input";
+import { FieldWrapper } from "@/components/form/fields/field-wrapper";
 
-import { createProgramSchema } from "../_schemas/schemas";
+import { createProgramSchema } from "../schemas";
 import { createProgram } from "../_actions/create-program.action";
 import { useRefreshPrograms } from "../_hooks/use-programs";
 
@@ -70,14 +71,21 @@ export function CreateProgramDialog({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmitWithAction} className="space-y-4">
-          <Input
+          <FieldWrapper
             name="name"
             control={form.control}
             label="Program Name"
-            placeholder="e.g., Upper/Lower"
             required
-            disabled={isExecuting}
-          />
+          >
+            {(props) => (
+              <Input
+                {...props.field}
+                placeholder="e.g., Upper/Lower"
+                disabled={isExecuting}
+                aria-invalid={props.fieldState.invalid}
+              />
+            )}
+          </FieldWrapper>
           <DialogFooter>
             <Button
               type="button"

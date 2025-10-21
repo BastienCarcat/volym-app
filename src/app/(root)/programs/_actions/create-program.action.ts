@@ -2,7 +2,7 @@
 
 import { authActionClient } from "@/lib/nextSafeAction/client";
 import prisma from "@/lib/prisma/prisma";
-import { createProgramSchema } from "../_schemas/schemas";
+import { createProgramSchema } from "../schemas";
 import { SafeActionError } from "@/lib/errors";
 
 export const createProgram = authActionClient
