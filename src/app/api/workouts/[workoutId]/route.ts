@@ -10,7 +10,7 @@ export const GET = userRoute
       workoutId: z.uuidv4(),
     })
   )
-  .handler(async (req, { ctx, params }) => {
+  .handler(async (_req, { ctx, params }) => {
     const { workoutId } = params;
 
     const workout = await getWorkoutById(workoutId, ctx.currentUser.dbUser.id);

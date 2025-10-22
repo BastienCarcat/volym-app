@@ -2,7 +2,7 @@ import { Prisma } from "@/generated/prisma";
 import prisma from "../prisma/prisma";
 
 export const getWorkouts = async (userId: string) => {
-  return await prisma.workout.findMany({
+  return await prisma.workoutTemplate.findMany({
     where: {
       createdBy: userId,
     },

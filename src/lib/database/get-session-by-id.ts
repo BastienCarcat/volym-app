@@ -1,16 +1,18 @@
-import { Prisma } from "@/generated/prisma";
-import prisma from "../prisma/prisma";
+import prisma from "@/lib/prisma/prisma";
 
-export const getWorkoutById = async (workoutId: string, userId: string) => {
-  return await prisma.workoutTemplate.findUnique({
+export const getSessionById = async (sessionId: string) => {
+  return await prisma.session.findUnique({
     where: {
-      id: workoutId,
-      createdBy: userId,
+      id: sessionId,
     },
     select: {
       id: true,
       name: true,
       note: true,
+      day: true,
+      weekNumber: true,
+      programId: true,
+      templateId: true,
       exercises: {
         orderBy: { order: "asc" },
         select: {
@@ -18,6 +20,7 @@ export const getWorkoutById = async (workoutId: string, userId: string) => {
           note: true,
           order: true,
           exerciseId: true,
+          supersetId: true,
           sets: {
             orderBy: { order: "asc" },
             select: {
@@ -36,4 +39,4 @@ export const getWorkoutById = async (workoutId: string, userId: string) => {
   });
 };
 
-export type DbWorkout = Prisma.PromiseReturnType<typeof getWorkoutById>;
+export type DbSession = Awaited<ReturnType<typeof getSessionById>>;

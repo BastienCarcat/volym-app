@@ -1,21 +1,39 @@
-import React from "react";
-import { HydrationBoundary, QueryClient, dehydrate } from "@tanstack/react-query";
-import { prefetchProgramWithSchedule } from "../_hooks/use-programs";
-import ProgramEditor from "../_components/ProgramEditor";
+"use client";
 
-export default async function ProgramPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const queryClient = new QueryClient();
+import { notFound, useParams } from "next/navigation";
+import { useProgram } from "../_hooks/use-programs";
+import { ProgramHeader } from "./_components/ProgramHeader";
+import { WeekTabs } from "./_components/WeekTabs";
+import { Skeleton } from "@/components/ui/skeleton";
 
-  await prefetchProgramWithSchedule(queryClient, id);
+export default function ProgramPage() {
+  const { id } = useParams<{ id: string }>();
+  const { data: program, isLoading, error } = useProgram(id);
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto space-y-6 py-6">
+        <ProgramLoadingSkeleton />
+      </div>
+    );
+  }
+  if (error || !program) {
+    notFound();
+  }
 
   return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <ProgramEditor programId={id} />
-    </HydrationBoundary>
+    <div className="container mx-auto space-y-6 py-6">
+      <ProgramHeader program={program} />
+      <WeekTabs sessions={program.sessions} programId={id} />
+    </div>
+  );
+}
+
+function ProgramLoadingSkeleton() {
+  return (
+    <>
+      <Skeleton className="h-20 w-full" />
+      <Skeleton className="h-96 w-full" />
+    </>
   );
 }

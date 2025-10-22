@@ -1,48 +1,23 @@
 import { upfetch } from "@/lib/up-fetch";
-import { useQuery, useQueryClient, QueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import z from "zod";
-import { programWithScheduleSchema } from "../schemas";
+import { programSchema, programWithSessionsSchema } from "../schemas";
 
-const programListItemSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  note: z.string().nullable(),
-});
-
-export type Program = z.infer<typeof programListItemSchema>;
-export type ProgramWithSchedule = z.infer<typeof programWithScheduleSchema>;
+export type Program = z.infer<typeof programSchema>;
+export type ProgramWithSessions = z.infer<typeof programWithSessionsSchema>;
 
 const fetchPrograms = async () => {
   const result = await upfetch(`/api/programs/`, {
     schema: z.object({
-      programs: z.array(programListItemSchema),
+      programs: z.array(programSchema),
     }),
   });
   return result;
 };
 
-const fetchProgramWithSchedule = async (programId: string) => {
+const fetchProgramWithSessions = async (programId: string) => {
   const result = await upfetch(`/api/programs/${programId}`, {
-    schema: z.object({
-      program: z.object({
-        id: z.string(),
-        name: z.string(),
-        note: z.string().nullable(),
-        createdBy: z.string(),
-        schedules: z.array(
-          z.object({
-            id: z.string(),
-            day: z.string(),
-            workoutId: z.string(),
-            workout: z.object({
-              id: z.string(),
-              name: z.string(),
-              note: z.string().nullable(),
-            }),
-          })
-        ),
-      }),
-    }),
+    schema: z.object({ program: programWithSessionsSchema }),
   });
   return result.program;
 };
@@ -58,10 +33,11 @@ export const usePrograms = () => {
   return query;
 };
 
-export const useProgramWithSchedule = (programId: string) => {
+export const useProgram = (programId: string) => {
   return useQuery({
     queryKey: ["program", programId],
-    queryFn: () => fetchProgramWithSchedule(programId),
+    queryFn: () => fetchProgramWithSessions(programId),
+    enabled: !!programId,
   });
 };
 
@@ -81,22 +57,4 @@ export const useRefreshProgram = () => {
   return (programId: string) => {
     void queryClient.invalidateQueries({ queryKey: ["program", programId] });
   };
-};
-
-export const useUpdateProgramCache = () => {
-  const queryClient = useQueryClient();
-
-  return (programId: string, data: ProgramWithSchedule) => {
-    queryClient.setQueryData(["program", programId], data);
-  };
-};
-
-export const prefetchProgramWithSchedule = async (
-  queryClient: QueryClient,
-  programId: string
-) => {
-  await queryClient.prefetchQuery({
-    queryKey: ["program", programId],
-    queryFn: () => fetchProgramWithSchedule(programId),
-  });
 };

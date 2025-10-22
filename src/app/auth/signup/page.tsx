@@ -9,35 +9,30 @@ import {
   CardTitle,
 } from "@/components/ui/cards";
 import { signup } from "../_actions/signup.action";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useHookFormAction } from "@next-safe-action/adapter-react-hook-form/hooks";
 import { signupSchema } from "../_schemas/schemas";
-import { Form } from "@/components/form/form";
+import { Form, useZodForm } from "@/components/form/form";
 import { toast } from "sonner";
 import { Input } from "@/components/form/fields/inputs/input";
+import { useAction } from "next-safe-action/hooks";
+import { FieldWrapper } from "@/components/form";
 
 export default function SignUpForm() {
-  const {
-    form,
-    action: { isExecuting },
-    handleSubmitWithAction,
-  } = useHookFormAction(signup, zodResolver(signupSchema), {
-    formProps: {
-      reValidateMode: "onChange",
-      defaultValues: {
-        email: "",
-        password: "",
-        confirmPassword: "",
-      },
+  const form = useZodForm({
+    schema: signupSchema,
+    defaultValues: {
+      email: "",
+      password: "",
+      confirmPassword: "",
     },
-    actionProps: {
-      onError: ({ error }) => {
-        const errorMessage =
-          typeof error.serverError === "string"
-            ? error.serverError
-            : "An error occurred while signing up";
-        toast.error(errorMessage);
-      },
+  });
+
+  const { execute, isExecuting } = useAction(signup, {
+    onError: ({ error }) => {
+      const errorMessage =
+        typeof error.serverError === "string"
+          ? error.serverError
+          : "An error occurred while signing up";
+      toast.error(errorMessage);
     },
   });
 
@@ -51,10 +46,9 @@ export default function SignUpForm() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={handleSubmitWithAction}>
-              <div className="grid gap-6">
-                {/* <div className="flex flex-col gap-4">
+          <Form form={form} onSubmit={execute}>
+            <div className="grid gap-6">
+              {/* <div className="flex flex-col gap-4">
                 <Button type="button" variant="outline" className="w-full">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                     <path
@@ -79,42 +73,50 @@ export default function SignUpForm() {
                   Or continue with
                 </span>
               </div> */}
-                <Input
-                  name="email"
-                  control={form.control}
-                  type="email"
-                  label="Email"
-                  placeholder="mail@example.com"
-                  required
-                />
+              <FieldWrapper
+                name="email"
+                control={form.control}
+                label="Email"
+                required
+              >
+                {(props) => (
+                  <Input
+                    {...props.field}
+                    type="email"
+                    placeholder="mail@example.com"
+                    required
+                  />
+                )}
+              </FieldWrapper>
 
-                <Input
-                  name="password"
-                  control={form.control}
-                  type="password"
-                  label="Password"
-                  required
-                />
+              <FieldWrapper
+                name="password"
+                control={form.control}
+                label="Password"
+                required
+              >
+                {(props) => <Input {...props.field} type="password" required />}
+              </FieldWrapper>
 
-                <Input
-                  name="confirmPassword"
-                  control={form.control}
-                  type="password"
-                  label="Confirm password"
-                  required
-                />
+              <FieldWrapper
+                name="confirmPassword"
+                control={form.control}
+                label="Confirm password"
+                required
+              >
+                {(props) => <Input {...props.field} type="password" required />}
+              </FieldWrapper>
 
-                <Button type="submit" className="w-full" disabled={isExecuting}>
-                  {isExecuting ? "Creating account..." : "Create account"}
-                </Button>
-                <div className="text-center text-sm">
-                  Already have an account?{" "}
-                  <a href="/login" className="underline underline-offset-4">
-                    Login
-                  </a>
-                </div>
+              <Button type="submit" className="w-full" disabled={isExecuting}>
+                {isExecuting ? "Creating account..." : "Create account"}
+              </Button>
+              <div className="text-center text-sm">
+                Already have an account?{" "}
+                <a href="/auth/login" className="underline underline-offset-4">
+                  Login
+                </a>
               </div>
-            </form>
+            </div>
           </Form>
         </CardContent>
       </Card>

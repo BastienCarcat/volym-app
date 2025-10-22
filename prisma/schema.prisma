@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
@@ -14,6 +11,10 @@ datasource db {
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
+
+// ==========================================
+// ENUMS
+// ==========================================
 
 enum UserType {
   Coach
@@ -32,6 +33,20 @@ enum SetType {
   Failure
 }
 
+enum DayOfWeek {
+  Monday
+  Tuesday
+  Wednesday
+  Thursday
+  Friday
+  Saturday
+  Sunday
+}
+
+// ==========================================
+// USERS
+// ==========================================
+
 model User {
   id        String   @id @default(uuid())
   weight    Int?
@@ -42,63 +57,148 @@ model User {
   email     String   @unique
   type      UserType @default(Athlete)
 
-  programs Program[]
-  workouts Workout[]
+  programs         Program[]
+  workoutTemplates WorkoutTemplate[]
 }
+
+// ==========================================
+// PROGRAMS & SESSIONS
+// ==========================================
 
 model Program {
-  id        String  @id @default(uuid())
+  id        String    @id @default(uuid())
   createdBy String
-  note      String? @db.Text
+  note      String?   @db.Text
   name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
-  user      User              @relation(fields: [createdBy], references: [id])
-  schedules ProgramSchedule[]
+  user     User      @relation(fields: [createdBy], references: [id])
+  sessions Session[]
+
+  @@index([createdBy])
+  @@index([deletedAt])
 }
 
-model ProgramSchedule {
-  id         String @id @default(uuid())
+model Session {
+  id         String    @id @default(uuid())
   programId  String
-  workoutId  String
-  day        String
+  templateId String?
+  name       String
+  note       String?   @db.Text
+  day        DayOfWeek
   weekNumber Int?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
 
-  program Program @relation(fields: [programId], references: [id])
-  workout Workout @relation(fields: [workoutId], references: [id])
+  program   Program           @relation(fields: [programId], references: [id])
+  template  WorkoutTemplate?  @relation(fields: [templateId], references: [id])
+  exercises SessionExercise[]
+
+  @@index([programId])
+  @@index([templateId])
+  @@index([deletedAt])
 }
 
-model Workout {
-  id        String  @id @default(uuid())
+// ==========================================
+// WORKOUT TEMPLATES (Library)
+// ==========================================
+
+model WorkoutTemplate {
+  id        String    @id @default(uuid())
   createdBy String
-  note      String? @db.Text
   name      String
+  note      String?   @db.Text
+  isPublic  Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
-  user      User              @relation(fields: [createdBy], references: [id])
-  exercises WorkoutExercise[]
-  schedules ProgramSchedule[]
+  user      User               @relation(fields: [createdBy], references: [id])
+  exercises TemplateExercise[]
+  sessions  Session[]
+
+  @@index([createdBy])
+  @@index([isPublic])
+  @@index([deletedAt])
 }
 
-model WorkoutExercise {
-  id         String  @id @default(uuid())
-  workoutId  String
+model TemplateExercise {
+  id         String    @id @default(uuid())
+  templateId String
   exerciseId String
-  note       String? @db.Text
+  note       String?   @db.Text
   order      Int
   supersetId String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
 
-  workout Workout       @relation(fields: [workoutId], references: [id])
-  sets    ExerciseSet[]
+  template WorkoutTemplate @relation(fields: [templateId], references: [id])
+  sets     TemplateSet[]
+
+  @@index([templateId])
+  @@index([deletedAt])
 }
 
-model ExerciseSet {
-  id                String  @id @default(uuid())
-  workoutExerciseId String
+model TemplateSet {
+  id                 String    @id @default(uuid())
+  templateExerciseId String
+  weight             Int
+  reps               Int
+  rest               Int?
+  order              Int
+  type               SetType   @default(Normal)
+  rpe                Int?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  deletedAt          DateTime?
+
+  templateExercise TemplateExercise @relation(fields: [templateExerciseId], references: [id])
+
+  @@index([templateExerciseId])
+  @@index([deletedAt])
+}
+
+// ==========================================
+// SESSION EXERCISES & SETS
+// ==========================================
+
+model SessionExercise {
+  id         String    @id @default(uuid())
+  sessionId  String
+  exerciseId String
+  note       String?   @db.Text
+  order      Int
+  supersetId String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+
+  session Session      @relation(fields: [sessionId], references: [id])
+  sets    SessionSet[]
+
+  @@index([sessionId])
+  @@index([deletedAt])
+}
+
+model SessionSet {
+  id                String    @id @default(uuid())
+  sessionExerciseId String
   weight            Int
   reps              Int
   rest              Int?
   order             Int
-  type              SetType @default(Normal)
+  type              SetType   @default(Normal)
   rpe               Int?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  deletedAt         DateTime?
 
-  workoutExercise WorkoutExercise @relation(fields: [workoutExerciseId], references: [id])
+  sessionExercise SessionExercise @relation(fields: [sessionExerciseId], references: [id])
+
+  @@index([sessionExerciseId])
+  @@index([deletedAt])
 }

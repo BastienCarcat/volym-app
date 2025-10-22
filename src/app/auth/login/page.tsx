@@ -8,35 +8,30 @@ import {
   CardTitle,
 } from "@/components/ui/cards";
 import { Button } from "@/components/ui/button";
-import { useHookFormAction } from "@next-safe-action/adapter-react-hook-form/hooks";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Form } from "@/components/form/form";
+import { Form, useZodForm } from "@/components/form/form";
 import { loginSchema } from "../_schemas/schemas";
 import { login } from "../_actions/login.action";
 import { Input } from "@/components/form/fields/inputs/input";
+import { FieldWrapper } from "@/components/form";
+import { useAction } from "next-safe-action/hooks";
 
 export default function LoginPage() {
-  const {
-    form,
-    action: { isExecuting },
-    handleSubmitWithAction,
-  } = useHookFormAction(login, zodResolver(loginSchema), {
-    formProps: {
-      reValidateMode: "onChange",
-      defaultValues: {
-        email: "",
-        password: "",
-      },
+  const form = useZodForm({
+    schema: loginSchema,
+    defaultValues: {
+      email: "",
+      password: "",
     },
-    actionProps: {
-      onError: ({ error }) => {
-        const errorMessage =
-          typeof error.serverError === "string"
-            ? error.serverError
-            : "An error occurred while connecting";
-        toast.error(errorMessage);
-      },
+  });
+
+  const { execute, isExecuting } = useAction(login, {
+    onError: ({ error }) => {
+      const errorMessage =
+        typeof error.serverError === "string"
+          ? error.serverError
+          : "An error occurred while connecting";
+      toast.error(errorMessage);
     },
   });
 
@@ -48,10 +43,9 @@ export default function LoginPage() {
           <CardDescription>Login to continue on Volym.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={handleSubmitWithAction}>
-              <div className="grid gap-6">
-                {/* <div className="flex flex-col gap-4">
+          <Form form={form} onSubmit={execute}>
+            <div className="grid gap-6">
+              {/* <div className="flex flex-col gap-4">
                 <Button type="button" variant="outline" className="w-full">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                     <path
@@ -76,47 +70,52 @@ export default function LoginPage() {
                   Or continue with
                 </span>
               </div> */}
-                <Input
-                  name="email"
-                  control={form.control}
-                  type="email"
-                  label="Email"
-                  placeholder="mail@example.com"
-                  required
-                />
-
-                <div className="space-y-2">
+              <FieldWrapper
+                name="email"
+                control={form.control}
+                label="Email"
+                required
+              >
+                {(props) => (
                   <Input
-                    name="password"
-                    control={form.control}
-                    type="password"
-                    label="Password"
+                    {...props.field}
+                    type="email"
+                    placeholder="mail@example.com"
                     required
                   />
-                  <div className="text-right">
-                    <a
-                      href="#"
-                      className="text-sm underline-offset-4 hover:underline"
-                    >
-                      Forgot your password?
-                    </a>
-                  </div>
-                </div>
+                )}
+              </FieldWrapper>
 
-                <Button type="submit" className="w-full" disabled={isExecuting}>
-                  {isExecuting ? "Logging in..." : "Login"}
-                </Button>
-                <div className="text-center text-sm">
-                  Don&apos;t have an account?{" "}
+              <div className="space-y-2">
+                <FieldWrapper
+                  name="password"
+                  control={form.control}
+                  label="Password"
+                  required
+                >
+                  {(props) => <Input {...props.field} type="password" required />}
+                </FieldWrapper>
+
+                <div className="text-right">
                   <a
-                    href="/auth/signup"
-                    className="underline underline-offset-4"
+                    href="#"
+                    className="text-sm underline-offset-4 hover:underline"
                   >
-                    Sign up
+                    Forgot your password?
                   </a>
                 </div>
               </div>
-            </form>
+
+              <Button type="submit" className="w-full" disabled={isExecuting}>
+                {isExecuting ? "Logging in..." : "Login"}
+              </Button>
+              <div className="text-center text-sm">
+                Don&apos;t have an account?{" "}
+                <a href="/auth/signup" className="underline underline-offset-4">
+                  Sign up
+                </a>
+              </div>
+            </div>
           </Form>
         </CardContent>
       </Card>
