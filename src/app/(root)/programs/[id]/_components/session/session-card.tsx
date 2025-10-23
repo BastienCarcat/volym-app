@@ -1,129 +1,95 @@
 "use client";
 
 import * as React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-import { Plus } from "lucide-react";
-import type { DayOfWeek } from "@/generated/prisma";
+import { Save } from "lucide-react";
 import {
   useSession,
+  useUpdateSessionCache,
   type SessionWithExercises,
 } from "../../../_hooks/use-sessions";
+import { Form, useZodForm } from "@/components/form";
+import { sessionWithExercisesSchema } from "../../../schemas";
+import { useAction } from "next-safe-action/hooks";
+import { saveSession } from "../../../_actions/save-session.action";
+import z from "zod";
+import SessionExercisesList from "./session-exercises-list";
+import { toast } from "sonner";
 
 interface SessionCardProps {
-  day: DayOfWeek;
   sessionId: string;
-  programId: string;
 }
 
-export function SessionCard({ day, sessionId, programId }: SessionCardProps) {
+export type SessionFormValues = z.infer<typeof sessionWithExercisesSchema>;
+
+export function SessionCard({ sessionId }: SessionCardProps) {
   const { data: session } = useSession(sessionId);
 
-  if (!session) {
-    return <div>bog</div>;
-  }
+  const updateSessionCache = useUpdateSessionCache();
+
+  const form = useZodForm({
+    schema: sessionWithExercisesSchema,
+    reValidateMode: "onChange",
+    defaultValues: session,
+  });
+
+  const { execute, isPending } = useAction(saveSession, {
+    onSuccess: ({ data }) => {
+      if (data) {
+        // const nameChanged = session?.name !== data.name;
+        // const noteChanged = session?.note !== data.note;
+        updateSessionCache(sessionId, data);
+        form.reset(data); // TODO: this re-render all the Form so accordions are closed after submit
+
+        // if (nameChanged || noteChanged) {
+        //   refreshWorkouts();
+        // }
+      }
+    },
+    onError: () => {
+      toast.error("An error occurred while saving the session");
+    },
+  });
+
+  const handleSubmit = (data: SessionWithExercises) => {
+    execute(data);
+  };
+
+  const canSave = form.formState.isDirty && !isPending;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold">{session.name}</h2>
-            {session.note && (
-              <p className="text-muted-foreground mt-1 text-sm">
-                {session.note}
-              </p>
-            )}
-          </div>
-          <Button variant="outline" size="sm">
-            Edit Session
+    <Card className="h-full">
+      <Form form={form} onSubmit={handleSubmit} disabled={isPending}>
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold">{session.name}</h2>
+              {session.note && (
+                <p className="text-muted-foreground mt-1 text-sm">
+                  {session.note}
+                </p>
+              )}
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1">
+          <SessionExercisesList />
+        </CardContent>
+        <CardFooter className="flex justify-end">
+          <Button disabled={!canSave} className="shadow-lg" type="submit">
+            <Save className="mr-2 h-4 w-4" />
+            {isPending ? "Saving..." : "Save session"}
           </Button>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {session.exercises.length === 0 ? (
-          <div className="py-8 text-center">
-            <p className="text-muted-foreground mb-4 text-sm">
-              No exercises added yet
-            </p>
-            <Button variant="outline">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Exercise
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {session.exercises.map(
-              (
-                exercise: SessionWithExercises["exercises"][number],
-                index: number
-              ) => (
-                <div
-                  key={exercise.id}
-                  className="space-y-3 rounded-lg border p-4"
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground text-sm font-medium">
-                          #{index + 1}
-                        </span>
-                        <h4 className="font-semibold">
-                          Exercise {exercise.exerciseId}
-                        </h4>
-                      </div>
-                      {exercise.note && (
-                        <p className="text-muted-foreground mt-1 text-sm">
-                          {exercise.note}
-                        </p>
-                      )}
-                    </div>
-                    {exercise.supersetId && (
-                      <span className="bg-primary/10 text-primary rounded px-2 py-1 text-xs">
-                        Superset
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Sets */}
-                  <div className="space-y-2">
-                    <div className="text-muted-foreground grid grid-cols-5 gap-2 text-xs font-medium">
-                      <span>Set</span>
-                      <span>Weight (kg)</span>
-                      <span>Reps</span>
-                      <span>RPE</span>
-                      <span>Rest (s)</span>
-                    </div>
-                    {exercise.sets.map(
-                      (
-                        set: SessionWithExercises["exercises"][number]["sets"][number],
-                        setIndex: number
-                      ) => (
-                        <div
-                          key={set.id}
-                          className="grid grid-cols-5 items-center gap-2 border-t py-2 text-sm"
-                        >
-                          <span className="font-medium">{setIndex + 1}</span>
-                          <span>{set.weight} kg</span>
-                          <span>{set.reps}</span>
-                          <span>{set.rpe || "-"}</span>
-                          <span>{set.rest ? `${set.rest}s` : "-"}</span>
-                        </div>
-                      )
-                    )}
-                  </div>
-                </div>
-              )
-            )}
-
-            <Button variant="outline" className="w-full">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Exercise
-            </Button>
-          </div>
-        )}
-      </CardContent>
+        </CardFooter>
+      </Form>
     </Card>
   );
 }

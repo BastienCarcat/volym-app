@@ -7,7 +7,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/cards";
+} from "@/components/ui/card";
 import { signup } from "../_actions/signup.action";
 import { signupSchema } from "../_schemas/schemas";
 import { Form, useZodForm } from "@/components/form/form";

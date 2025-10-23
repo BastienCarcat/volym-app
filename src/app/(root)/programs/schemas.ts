@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { DayOfWeek, SetType } from "@/generated/prisma";
+import { BodyPart } from "./types";
 
 // **************** session ****************
 
@@ -22,7 +23,7 @@ export const sessionSchema = z.object({
 });
 
 export const sessionSetSchema = z.object({
-  id: z.string(),
+  id: z.string().optional(), // Optional for new sets
   weight: z.number(),
   reps: z.number(),
   rest: z.number().nullable(),
@@ -32,7 +33,7 @@ export const sessionSetSchema = z.object({
 });
 
 export const sessionExerciseSchema = z.object({
-  id: z.string(),
+  id: z.string().optional(), // Optional for new exercises
   note: z.string().nullable(),
   order: z.number(),
   exerciseId: z.string(),
@@ -72,4 +73,46 @@ export const templateSchema = z.object({
   isPublic: z.boolean(),
   createdAt: z.string(),
   updatedAt: z.string(),
+});
+
+// *********** GymFit **************
+
+export const gymFitMinimalExerciseSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  bodyPart: z.enum(BodyPart),
+  image: z.string(),
+});
+
+export const gymFitSearchExercisesResponseSchema = z.object({
+  results: z.array(gymFitMinimalExerciseSchema),
+});
+
+export const gymFitMuscleSchema = z.object({
+  id: z.string(),
+  bodyPart: z.enum(BodyPart),
+  name: z.string(),
+  group: z.string().nullable(),
+});
+
+export const gymFitExerciseSchema = z.object({
+  name: z.string(),
+  targetMuscles: z.array(gymFitMuscleSchema),
+  secondaryMuscles: z.array(gymFitMuscleSchema),
+  equipment: z.string(), //TODO: make enum
+  bodyPart: z.enum(BodyPart),
+  image: z.string(),
+  variations: z.array(gymFitMinimalExerciseSchema),
+  instructions: z.array(
+    z.object({
+      order: z.number(),
+      description: z.string(),
+    })
+  ),
+});
+
+export const SearchExercisesFiltersSchema = z.object({
+  query: z.string().optional(),
+  bodyPart: z.enum(BodyPart).optional(),
+  equipment: z.string().optional(),
 });

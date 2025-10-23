@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import { upfetch } from "@/lib/up-fetch";
 import z from "zod";
 import { produce } from "immer";
@@ -17,10 +22,9 @@ const fetchSession = async (
 };
 
 export const useSession = (sessionId: string) => {
-  return useQuery<SessionWithExercises>({
+  return useSuspenseQuery<SessionWithExercises>({
     queryKey: ["session", sessionId],
     queryFn: () => fetchSession(sessionId),
-    enabled: !!sessionId,
   });
 };
 
@@ -63,4 +67,14 @@ export const useCreateSession = () => {
       return session;
     },
   });
+};
+
+export const useUpdateSessionCache = () => {
+  const queryClient = useQueryClient();
+
+  const updateCache = (sessionId: string, data: SessionWithExercises) => {
+    queryClient.setQueryData(["session", sessionId], data);
+  };
+
+  return updateCache;
 };
