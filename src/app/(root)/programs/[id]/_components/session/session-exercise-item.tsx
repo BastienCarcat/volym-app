@@ -98,12 +98,12 @@ export function SessionExerciseItem({
       >
         <Card
           className={cn(
-            "overflow-hidden shadow-none",
+            "gap-3 overflow-hidden py-3 shadow-none",
             !isOpen && hasExerciseError && "border-red-500"
           )}
         >
           <CardHeader
-            className="cursor-pointer"
+            className="cursor-pointer px-3"
             onClick={(e) => {
               const target = e.target as HTMLElement;
               if (
@@ -142,54 +142,45 @@ export function SessionExerciseItem({
               </div>
 
               {/* Exercise Info */}
-              <div className="flex-1">
-                <div className="flex justify-between">
-                  <CardTitle className="mb-2 text-xl text-gray-900">
-                    {name}
-                  </CardTitle>
-                  <CardAction>
-                    <div className="flex items-center gap-2">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            data-dropdown-trigger
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={onRemove}
-                            className="focus:text-red-600"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4 hover:text-red-600" />
-                            Remove exercise
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      <ChevronDown
-                        className={cn(
-                          "h-5 w-5 text-gray-500 transition-transform duration-200",
-                          isOpen && "rotate-180"
-                        )}
-                      />
-                    </div>
-                  </CardAction>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="secondary" className="gap-1 text-xs">
+              <div className="flex flex-1 items-center justify-between py-2">
+                <CardTitle className="text-md font-semibold text-gray-900">
+                  {name}
+                  <Badge variant="secondary" className="ml-4 text-xs">
                     {bodyPart}
                   </Badge>
-                </div>
+                </CardTitle>
+                <CardAction>
+                  <div className="flex items-center gap-2">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" data-dropdown-trigger>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={onRemove}
+                          className="focus:text-red-600"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4 hover:text-red-600" />
+                          Remove exercise
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <ChevronDown
+                      className={cn(
+                        "h-5 w-5 text-gray-500 transition-transform duration-200",
+                        isOpen && "rotate-180"
+                      )}
+                    />
+                  </div>
+                </CardAction>
               </div>
             </div>
           </CardHeader>
 
           <AccordionContent>
-            <CardContent className="border-t">
+            <CardContent className="border-t px-3 pt-3">
               <FieldWrapper
                 name={`exercises.${exerciseIndex}.note`}
                 control={control}

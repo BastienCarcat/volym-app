@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/sheet";
 
 import { Spinner } from "@/components/ui/spinner";
-import { BodyPart } from "../../../../types";
 import {
   SearchExercisesFilters,
   type SearchExercisesFiltersValues,

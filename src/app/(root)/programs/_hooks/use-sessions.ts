@@ -7,10 +7,15 @@ import {
 import { upfetch } from "@/lib/up-fetch";
 import z from "zod";
 import { produce } from "immer";
-import { createSessionSchema, sessionWithExercisesSchema } from "../schemas";
+import {
+  createSessionSchema,
+  sessionSchema,
+  sessionWithExercisesSchema,
+} from "../schemas";
 import type { ProgramWithSessions } from "./use-programs";
 
 export type SessionWithExercises = z.infer<typeof sessionWithExercisesSchema>;
+export type Session = z.infer<typeof sessionSchema>;
 
 const fetchSession = async (
   sessionId: string
@@ -28,6 +33,7 @@ export const useSession = (sessionId: string) => {
   });
 };
 
+// TODO : put this into an action
 export const useCreateSession = () => {
   const queryClient = useQueryClient();
 

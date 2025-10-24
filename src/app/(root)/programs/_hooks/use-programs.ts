@@ -1,7 +1,13 @@
 import { upfetch } from "@/lib/up-fetch";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { produce } from "immer";
 import z from "zod";
-import { programSchema, programWithSessionsSchema } from "../schemas";
+import {
+  programSchema,
+  programWithSessionsSchema,
+  sessionSchema,
+} from "../schemas";
+import { Session } from "./use-sessions";
 
 export type Program = z.infer<typeof programSchema>;
 export type ProgramWithSessions = z.infer<typeof programWithSessionsSchema>;
@@ -51,10 +57,58 @@ export const useRefreshPrograms = () => {
   return refresh;
 };
 
-export const useRefreshProgram = () => {
+export const useUpdateProgramCache = () => {
   const queryClient = useQueryClient();
 
-  return (programId: string) => {
-    void queryClient.invalidateQueries({ queryKey: ["program", programId] });
+  const updateCache = (programId: string, data: ProgramWithSessions) => {
+    queryClient.setQueryData(["program", programId], data);
   };
+
+  const updateSession = (
+    programId: string,
+    sessionId: string,
+    updatedSession: Partial<Session>
+  ) => {
+    queryClient.setQueryData<ProgramWithSessions>(
+      ["program", programId],
+      (oldData) => {
+        if (!oldData) return oldData;
+
+        return produce(oldData, (draft) => {
+          const session = draft.sessions.find((s) => s.id === sessionId);
+          if (session) {
+            Object.assign(session, updatedSession);
+          }
+        });
+      }
+    );
+  };
+
+  const addSession = (programId: string, newSession: Session) => {
+    queryClient.setQueryData<ProgramWithSessions>(
+      ["program", programId],
+      (oldData) => {
+        if (!oldData) return oldData;
+
+        return produce(oldData, (draft) => {
+          draft.sessions.push(newSession);
+        });
+      }
+    );
+  };
+
+  const removeSession = (programId: string, sessionId: string) => {
+    queryClient.setQueryData<ProgramWithSessions>(
+      ["program", programId],
+      (oldData) => {
+        if (!oldData) return oldData;
+
+        return produce(oldData, (draft) => {
+          draft.sessions = draft.sessions.filter((s) => s.id !== sessionId);
+        });
+      }
+    );
+  };
+
+  return { updateCache, updateSession, addSession, removeSession };
 };

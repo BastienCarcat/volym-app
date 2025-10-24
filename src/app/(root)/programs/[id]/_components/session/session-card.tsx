@@ -23,17 +23,21 @@ import { saveSession } from "../../../_actions/save-session.action";
 import z from "zod";
 import SessionExercisesList from "./session-exercises-list";
 import { toast } from "sonner";
+import { useUpdateProgramCache } from "../../../_hooks/use-programs";
+import { useWarnIfUnsavedChanges } from "@/hooks/use-warn-if-unsaved-changes";
 
 interface SessionCardProps {
   sessionId: string;
+  programId: string;
 }
 
 export type SessionFormValues = z.infer<typeof sessionWithExercisesSchema>;
 
-export function SessionCard({ sessionId }: SessionCardProps) {
+export function SessionCard({ sessionId, programId }: SessionCardProps) {
   const { data: session } = useSession(sessionId);
 
   const updateSessionCache = useUpdateSessionCache();
+  const { updateSession } = useUpdateProgramCache();
 
   const form = useZodForm({
     schema: sessionWithExercisesSchema,
@@ -41,17 +45,22 @@ export function SessionCard({ sessionId }: SessionCardProps) {
     defaultValues: session,
   });
 
+  // TODO: show warniing if we change the day tab
+  useWarnIfUnsavedChanges(
+    form.formState.isDirty,
+    "Your session have unsaved changes. Are you sure you want to leave?"
+  );
+
   const { execute, isPending } = useAction(saveSession, {
     onSuccess: ({ data }) => {
       if (data) {
-        // const nameChanged = session?.name !== data.name;
-        // const noteChanged = session?.note !== data.note;
+        const nameChanged = session?.name !== data.name;
         updateSessionCache(sessionId, data);
         form.reset(data); // TODO: this re-render all the Form so accordions are closed after submit
 
-        // if (nameChanged || noteChanged) {
-        //   refreshWorkouts();
-        // }
+        if (nameChanged) {
+          updateSession(programId, sessionId, { name: data.name });
+        }
       }
     },
     onError: () => {

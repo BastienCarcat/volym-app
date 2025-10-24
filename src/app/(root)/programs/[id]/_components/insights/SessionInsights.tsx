@@ -1,7 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { DbProgram } from "@/lib/database/get-program-by-id";
-import { ProgramInsightsTabs } from "../../_components/program-insights-tabs";
-
+import { ProgramInsightsTabs } from "../../../_components/program-insights-tabs";
 type Session = NonNullable<DbProgram>["sessions"][number];
 
 interface SessionInsightsProps {

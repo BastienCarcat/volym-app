@@ -3,7 +3,7 @@
 import { notFound, useParams } from "next/navigation";
 import { useProgram } from "../_hooks/use-programs";
 import { ProgramHeader } from "./_components/ProgramHeader";
-import { WeekTabs } from "./_components/WeekTabs";
+import { WeekTabs } from "./_components/week-tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ContentContainer } from "@/components/layout/page/content";
 

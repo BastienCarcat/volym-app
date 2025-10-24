@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Plus } from "lucide-react";
