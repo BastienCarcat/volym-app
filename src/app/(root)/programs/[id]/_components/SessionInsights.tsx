@@ -10,13 +10,9 @@ interface SessionInsightsProps {
 
 export function SessionInsights({ session }: SessionInsightsProps) {
   return (
-    <Card className="h-full">
-      <CardHeader>
-        <CardTitle className="text-lg">Insights</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ProgramInsightsTabs />
-      </CardContent>
-    </Card>
+    <>
+      <h2 className="mb-4 text-lg font-bold">Insights</h2>
+      <ProgramInsightsTabs />
+    </>
   );
 }

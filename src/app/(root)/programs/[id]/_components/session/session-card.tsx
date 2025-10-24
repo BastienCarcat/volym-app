@@ -16,7 +16,7 @@ import {
   useUpdateSessionCache,
   type SessionWithExercises,
 } from "../../../_hooks/use-sessions";
-import { Form, useZodForm } from "@/components/form";
+import { FieldWrapper, Form, TitleInput, useZodForm } from "@/components/form";
 import { sessionWithExercisesSchema } from "../../../schemas";
 import { useAction } from "next-safe-action/hooks";
 import { saveSession } from "../../../_actions/save-session.action";
@@ -66,30 +66,38 @@ export function SessionCard({ sessionId }: SessionCardProps) {
   const canSave = form.formState.isDirty && !isPending;
 
   return (
-    <Card className="h-full">
-      <Form form={form} onSubmit={handleSubmit} disabled={isPending}>
-        <CardHeader className="pb-4">
-          <CardTitle className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold">{session.name}</h2>
-              {session.note && (
-                <p className="text-muted-foreground mt-1 text-sm">
-                  {session.note}
-                </p>
+    <Form
+      form={form}
+      onSubmit={handleSubmit}
+      disabled={isPending}
+      className="flex h-full min-h-0 flex-col"
+    >
+      <Card className="h-full min-h-0">
+        <CardHeader className="flex-shrink-0">
+          <CardTitle>
+            <FieldWrapper name="name" control={form.control}>
+              {(props) => (
+                <TitleInput
+                  {...props.field}
+                  placeholder="Enter session name"
+                  maxLength={30}
+                  showCharCount
+                  as="h2"
+                />
               )}
-            </div>
+            </FieldWrapper>
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex-1">
+        <CardContent className="min-h-0 flex-1 overflow-hidden">
           <SessionExercisesList />
         </CardContent>
-        <CardFooter className="flex justify-end">
+        <CardFooter className="flex flex-shrink-0 justify-end">
           <Button disabled={!canSave} className="shadow-lg" type="submit">
             <Save className="mr-2 h-4 w-4" />
             {isPending ? "Saving..." : "Save session"}
           </Button>
         </CardFooter>
-      </Form>
-    </Card>
+      </Card>
+    </Form>
   );
 }

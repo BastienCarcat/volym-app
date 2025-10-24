@@ -9,34 +9,34 @@ export const createSessionSchema = z.object({
   templateId: z.string().optional(),
   name: z.string().min(1, "Name is required"),
   day: z.enum(DayOfWeek),
-  weekNumber: z.number().int().positive().optional(),
+  weekNumber: z.number().positive().optional(),
   note: z.string().optional(),
 });
 
 export const sessionSchema = z.object({
-  id: z.string(),
-  name: z.string(),
+  id: z.string().min(1, "id is required"),
+  name: z.string().min(1, "Name is required"),
   note: z.string().nullable(),
   day: z.enum(DayOfWeek),
-  weekNumber: z.number().nullable(),
+  weekNumber: z.number().positive().nullable(),
   templateId: z.string().nullable(),
 });
 
 export const sessionSetSchema = z.object({
   id: z.string().optional(), // Optional for new sets
-  weight: z.number(),
-  reps: z.number(),
-  rest: z.number().nullable(),
+  weight: z.number().positive("Kg > 0"),
+  reps: z.number().positive("Reps > 0"),
+  rest: z.number().positive().nullable(),
   type: z.enum(SetType),
-  rpe: z.number().nullable(),
-  order: z.number(),
+  rpe: z.number().positive().nullable(),
+  order: z.number().positive(),
 });
 
 export const sessionExerciseSchema = z.object({
   id: z.string().optional(), // Optional for new exercises
   note: z.string().nullable(),
-  order: z.number(),
-  exerciseId: z.string(),
+  order: z.number().positive(),
+  exerciseId: z.string().min(1, "exerciseId is required"),
   supersetId: z.string().nullable(),
   sets: z.array(sessionSetSchema),
 });

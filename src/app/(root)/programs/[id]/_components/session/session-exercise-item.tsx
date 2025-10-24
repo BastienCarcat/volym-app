@@ -43,7 +43,10 @@ export function SessionExerciseItem({
   onRemove,
 }: SessionExerciseItemProps) {
   const [value, setValue] = useState<string>();
-  const { control } = useFormContext<SessionFormValues>();
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext<SessionFormValues>();
   const { data: exerciseInfo } = useExercise(exerciseId);
 
   const {
@@ -55,6 +58,7 @@ export function SessionExerciseItem({
     name: `exercises.${exerciseIndex}.sets`,
   });
 
+  const hasExerciseError = !!errors?.exercises?.[exerciseIndex];
   const isOpen = value === `exercise-${exerciseIndex}`;
 
   const toggleAccordion = () => {
@@ -92,7 +96,12 @@ export function SessionExerciseItem({
         value={`exercise-${exerciseIndex}`}
         className="border-none"
       >
-        <Card className="overflow-hidden shadow-none">
+        <Card
+          className={cn(
+            "overflow-hidden shadow-none",
+            !isOpen && hasExerciseError && "border-red-500"
+          )}
+        >
           <CardHeader
             className="cursor-pointer"
             onClick={(e) => {

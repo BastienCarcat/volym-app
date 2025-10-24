@@ -39,7 +39,7 @@ export function WeekTabs({ sessions, programId }: WeekTabsProps) {
   );
 
   return (
-    <Tabs defaultValue="Monday" className="flex-1">
+    <Tabs defaultValue="Monday" className="flex-1 min-h-0">
       <TabsList className="grid w-full grid-cols-7">
         {DAYS_OF_WEEK.map((day) => {
           const hasSession = sessionsMap.has(day);
@@ -67,13 +67,13 @@ export function WeekTabs({ sessions, programId }: WeekTabsProps) {
         const session = sessionsMap.get(day);
 
         return (
-          <TabsContent key={day} value={day} className="mt-6">
+          <TabsContent key={day} value={day} className="mt-6 min-h-0">
             <div className="grid h-full grid-cols-1 gap-6 lg:grid-cols-3">
               <div className="lg:col-span-1">
                 <SessionInsights session={session} />
               </div>
 
-              <div className="lg:col-span-2">
+              <div className="lg:col-span-2 min-h-0">
                 {session ? (
                   <Suspense fallback={<div>Loading session...</div>}>
                     <SessionCard sessionId={session.id} />

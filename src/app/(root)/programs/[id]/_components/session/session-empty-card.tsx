@@ -25,8 +25,8 @@ export function SessionEmptyCard({ day, programId }: SessionEmptyCardProps) {
 
   return (
     <>
-      <Card>
-        <CardContent className="py-16">
+      <Card className="h-full">
+        <CardContent className="flex h-full items-center py-16">
           <Empty>
             <EmptyHeader>
               <EmptyMedia variant="icon">

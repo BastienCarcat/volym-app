@@ -42,10 +42,9 @@ export function SessionExerciseSet({
           <NumberInput
             {...props.field}
             aria-invalid={props.fieldState.invalid}
-            placeholder="0"
-            min={0}
+            placeholder="10"
+            min={1}
             className="text-right"
-            allowDecimals
           />
         )}
       </FieldWrapper>
@@ -58,8 +57,8 @@ export function SessionExerciseSet({
           <NumberInput
             {...props.field}
             aria-invalid={props.fieldState.invalid}
-            placeholder="0"
-            min={0}
+            placeholder="10"
+            min={1}
             className="text-right"
           />
         )}
@@ -74,6 +73,7 @@ export function SessionExerciseSet({
             {...props.field}
             aria-invalid={props.fieldState.invalid}
             placeholder="0:00"
+            min={0}
             className="text-right"
           />
         )}
