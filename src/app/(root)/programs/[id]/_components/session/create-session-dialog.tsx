@@ -20,8 +20,8 @@ import { Form, useZodForm } from "@/components/form/form";
 
 import { Spinner } from "@/components/ui/spinner";
 import { createSessionSchema } from "../../../schemas";
-import { useTemplates } from "../../../_hooks/use-templates";
 import { useCreateSession } from "../../../_hooks/use-sessions";
+import { useTemplates } from "@/app/(root)/templates/_hooks/use-templates";
 
 interface CreateSessionDialogProps {
   programId: string;
