@@ -7,6 +7,7 @@ import type { DbProgram } from "@/lib/database/get-program-by-id";
 import { SessionCard } from "./session/session-card";
 import { SessionEmptyCard } from "./session/session-empty-card";
 import { SessionInsights } from "./insights/SessionInsights";
+import { SessionCardSkeleton } from "./loaders/session-card-skeleton";
 
 const DAYS_OF_WEEK: DayOfWeek[] = [
   "Monday",
@@ -71,7 +72,7 @@ export function WeekTabs({ sessions, programId }: WeekTabsProps) {
 
               <div className="min-h-0 lg:col-span-2">
                 {session ? (
-                  <Suspense fallback={<div>Loading session...</div>}>
+                  <Suspense fallback={<SessionCardSkeleton />}>
                     <SessionCard sessionId={session.id} programId={programId} />
                   </Suspense>
                 ) : (

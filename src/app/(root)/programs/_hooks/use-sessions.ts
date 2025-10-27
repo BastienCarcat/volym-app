@@ -13,6 +13,7 @@ import {
   sessionWithExercisesSchema,
 } from "../schemas";
 import type { ProgramWithSessions } from "./use-programs";
+import { usePrefetchExercises } from "./use-exercise";
 
 export type SessionWithExercises = z.infer<typeof sessionWithExercisesSchema>;
 export type Session = z.infer<typeof sessionSchema>;
@@ -27,9 +28,21 @@ const fetchSession = async (
 };
 
 export const useSession = (sessionId: string) => {
+  const prefetchExercises = usePrefetchExercises();
+
   return useSuspenseQuery<SessionWithExercises>({
     queryKey: ["session", sessionId],
-    queryFn: () => fetchSession(sessionId),
+    queryFn: async () => {
+      const session = await fetchSession(sessionId);
+
+      const exerciseIds = session?.exercises.map((e) => {
+        return e.exerciseId;
+      });
+
+      // We prefetch exercises here to avoid multiple loading screen. All session load at once
+      await prefetchExercises(exerciseIds);
+      return session;
+    },
   });
 };
 

@@ -133,19 +133,21 @@ export const useExercise = (exerciseId: string) => {
 };
 
 // Prefetch multiple exercises in parallel (server-side)
-export const prefetchExercises = async (
-  queryClient: any,
-  exerciseIds: string[]
-) => {
+export const usePrefetchExercises = () => {
+  const queryClient = useQueryClient();
+
   // Prefetch all exercises in parallel
-  await Promise.all(
-    exerciseIds.map((exerciseId) =>
-      queryClient.prefetchQuery({
-        queryKey: queryKeys.exercises.detail(exerciseId),
-        queryFn: () => fetchExercise(exerciseId),
-      })
-    )
-  );
+  const prefetch = (exerciseIds: string[]) =>
+    Promise.all(
+      exerciseIds.map((exerciseId) =>
+        queryClient.prefetchQuery({
+          queryKey: queryKeys.exercises.detail(exerciseId),
+          queryFn: () => fetchExercise(exerciseId),
+        })
+      )
+    );
+
+  return prefetch;
 };
 
 // Hook to manage exercise cache

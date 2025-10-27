@@ -79,6 +79,7 @@ export const columns: ColumnDef<Template>[] = [
   {
     accessorKey: "name",
     header: "Name",
+    size: 200,
   },
   {
     accessorKey: "note",
@@ -87,17 +88,21 @@ export const columns: ColumnDef<Template>[] = [
       const note = row.getValue("note") as string | null;
       return <span className="text-muted-foreground">{note || "-"}</span>;
     },
+    size: 600,
   },
   {
     id: "actions",
-    header: "Actions",
+    header: "",
     cell: ({ row }) => {
       return (
-        <DeleteTemplateButton
-          templateId={row.original.id}
-          templateName={row.original.name}
-        />
+        <div className="text-right">
+          <DeleteTemplateButton
+            templateId={row.original.id}
+            templateName={row.original.name}
+          />
+        </div>
       );
     },
+    size: 100,
   },
 ];
