@@ -1,13 +1,11 @@
 "use client";
 
-import { Suspense } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import type { DayOfWeek } from "@/generated/prisma";
-import type { DbProgram } from "@/lib/database/get-program-by-id";
 import { SessionCard } from "./session/session-card";
 import { SessionEmptyCard } from "./session/session-empty-card";
-import { SessionInsights } from "./insights/SessionInsights";
-import { SessionCardSkeleton } from "./loaders/session-card-skeleton";
+import { ProgramInsights } from "./insights/program-insights";
+import { ProgramWithFullSessions } from "../../_hooks/use-programs";
 
 const DAYS_OF_WEEK: DayOfWeek[] = [
   "Monday",
@@ -20,14 +18,14 @@ const DAYS_OF_WEEK: DayOfWeek[] = [
 ];
 
 interface WeekTabsProps {
-  sessions: NonNullable<DbProgram>["sessions"];
-  programId: string;
+  program: ProgramWithFullSessions;
 }
 
-export function WeekTabs({ sessions, programId }: WeekTabsProps) {
+export function WeekTabs({ program }: WeekTabsProps) {
   const sessionsMap = new Map(
-    sessions.map((session) => [session.day, session])
+    program.sessions.map((session) => [session.day, session])
   );
+  const programId = program.id;
 
   return (
     <Tabs defaultValue="Monday" className="min-h-0 flex-1">
@@ -67,14 +65,12 @@ export function WeekTabs({ sessions, programId }: WeekTabsProps) {
           <TabsContent key={day} value={day} className="mt-6 min-h-0">
             <div className="grid h-full grid-cols-1 gap-6 lg:grid-cols-3">
               <div className="lg:col-span-1">
-                <SessionInsights session={session} />
+                <ProgramInsights program={program} />
               </div>
 
               <div className="min-h-0 lg:col-span-2">
                 {session ? (
-                  <Suspense fallback={<SessionCardSkeleton />}>
-                    <SessionCard sessionId={session.id} programId={programId} />
-                  </Suspense>
+                  <SessionCard session={session} programId={programId} />
                 ) : (
                   <SessionEmptyCard day={day} programId={programId} />
                 )}

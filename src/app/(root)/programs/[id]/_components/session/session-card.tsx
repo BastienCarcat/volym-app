@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 
 import { Save, BookmarkPlus } from "lucide-react";
 import {
-  useSession,
   useUpdateSessionCache,
   type SessionWithExercises,
 } from "../../../_hooks/use-sessions";
@@ -33,19 +32,21 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useUpdateTemplatesCache } from "@/app/(root)/templates/_hooks/use-templates";
+import { useProgramContext } from "../../_providers/program-provider";
+import { useWatch } from "react-hook-form";
 
 interface SessionCardProps {
-  sessionId: string;
+  session: SessionWithExercises;
   programId: string;
 }
 
 export type SessionFormValues = z.infer<typeof sessionWithExercisesSchema>;
 
-export function SessionCard({ sessionId, programId }: SessionCardProps) {
-  const { data: session } = useSession(sessionId);
+export function SessionCard({ session, programId }: SessionCardProps) {
+  const { setActiveSession, resetActiveSession } = useProgramContext();
 
   const updateSessionCache = useUpdateSessionCache();
-  const { updateSession } = useUpdateProgramCache();
+  const { updateFullSession } = useUpdateProgramCache();
   const { addTemplate } = useUpdateTemplatesCache();
 
   const form = useZodForm({
@@ -54,7 +55,16 @@ export function SessionCard({ sessionId, programId }: SessionCardProps) {
     defaultValues: session,
   });
 
-  // TODO: show warniing if we change the day tab
+  React.useEffect(() => {
+    resetActiveSession(session.id);
+  }, [session.id, resetActiveSession]);
+
+  React.useEffect(() => {
+    const subscription = form.watch((values) => {
+      setActiveSession(session.id, values as SessionWithExercises);
+    });
+    return () => subscription.unsubscribe();
+  }, [form, session.id, setActiveSession]);
   useWarnIfUnsavedChanges(
     form.formState.isDirty,
     "Your session have unsaved changes. Are you sure you want to leave?"
@@ -63,13 +73,9 @@ export function SessionCard({ sessionId, programId }: SessionCardProps) {
   const { execute, isPending } = useAction(saveSession, {
     onSuccess: ({ data }) => {
       if (data) {
-        const nameChanged = session?.name !== data.name;
-        updateSessionCache(sessionId, data);
+        updateSessionCache(session.id, data);
+        updateFullSession(programId, session.id, data);
         form.reset(data); // TODO: this re-render all the Form so accordions are closed after submit
-
-        if (nameChanged) {
-          updateSession(programId, sessionId, { name: data.name });
-        }
       }
     },
     onError: () => {
@@ -104,7 +110,7 @@ export function SessionCard({ sessionId, programId }: SessionCardProps) {
   };
 
   const handleSaveAsTemplate = () => {
-    saveAsTemplate({ sessionId });
+    saveAsTemplate({ sessionId: session.id });
   };
 
   const canSave = form.formState.isDirty && !isPending;

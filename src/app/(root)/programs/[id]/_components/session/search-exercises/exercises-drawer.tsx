@@ -57,7 +57,7 @@ export function SearchExercisesDrawer({
       bodyPart: filters?.bodyPart,
       equipment: filters?.equipment,
     });
-  const { setExerciseCache } = useExerciseCache();
+  const { setExerciseCache, invalidateExercise } = useExerciseCache();
 
   const { ref, inView } = useInView({
     threshold: 0,
@@ -73,6 +73,7 @@ export function SearchExercisesDrawer({
   const handleExerciseSelect = (id: string) => {
     const exercise = exercises.find((ex) => ex.id === id);
     if (exercise) {
+      // Hack to see immediately the exercise item without waiting fetching result
       // Cache the minimal exercise data immediately
       setExerciseCache({
         id: exercise.id,
@@ -80,6 +81,9 @@ export function SearchExercisesDrawer({
         image: exercise.image,
         bodyPart: exercise.bodyPart,
       });
+
+      // Invalidate the cache to trigger a full fetch
+      invalidateExercise(id);
 
       onExerciseAdd(id);
     }

@@ -5,12 +5,19 @@ import z from "zod";
 import {
   programSchema,
   programWithSessionsSchema,
+  programWithFullSessionsSchema,
+  programWithFullSessionsAndExercisesSchema,
   sessionSchema,
 } from "../schemas";
-import { Session } from "./use-sessions";
+import { Session, SessionWithExercises } from "./use-sessions";
+import { queryKeys } from "@/lib/tanstack/query-keys";
 
 export type Program = z.infer<typeof programSchema>;
 export type ProgramWithSessions = z.infer<typeof programWithSessionsSchema>;
+export type ProgramWithFullSessions = z.infer<typeof programWithFullSessionsSchema>;
+export type ProgramWithFullSessionsAndExercises = z.infer<
+  typeof programWithFullSessionsAndExercisesSchema
+>;
 
 const fetchPrograms = async () => {
   const result = await upfetch(`/api/programs/`, {
@@ -21,9 +28,9 @@ const fetchPrograms = async () => {
   return result;
 };
 
-const fetchProgramWithSessions = async (programId: string) => {
+const fetchProgramWithFullSessionsAndExercises = async (programId: string) => {
   const result = await upfetch(`/api/programs/${programId}`, {
-    schema: z.object({ program: programWithSessionsSchema }),
+    schema: z.object({ program: programWithFullSessionsAndExercisesSchema }),
   });
   return result.program;
 };
@@ -40,9 +47,24 @@ export const usePrograms = () => {
 };
 
 export const useProgram = (programId: string) => {
+  const queryClient = useQueryClient();
+
   return useQuery({
     queryKey: ["program", programId],
-    queryFn: () => fetchProgramWithSessions(programId),
+    queryFn: async () => {
+      const data = await fetchProgramWithFullSessionsAndExercises(programId);
+
+      Object.entries(data.exercises).forEach(([exerciseId, exercise]) => {
+        queryClient.setQueryData(
+          queryKeys.exercises.detail(exerciseId),
+          exercise
+        );
+      });
+
+      const { exercises, ...program } = data;
+
+      return program;
+    },
     enabled: !!programId,
   });
 };
@@ -60,7 +82,7 @@ export const useRefreshPrograms = () => {
 export const useUpdateProgramCache = () => {
   const queryClient = useQueryClient();
 
-  const updateCache = (programId: string, data: ProgramWithSessions) => {
+  const updateCache = (programId: string, data: ProgramWithFullSessions) => {
     queryClient.setQueryData(["program", programId], data);
   };
 
@@ -69,7 +91,7 @@ export const useUpdateProgramCache = () => {
     sessionId: string,
     updatedSession: Partial<Session>
   ) => {
-    queryClient.setQueryData<ProgramWithSessions>(
+    queryClient.setQueryData<ProgramWithFullSessions>(
       ["program", programId],
       (oldData) => {
         if (!oldData) return oldData;
@@ -84,8 +106,28 @@ export const useUpdateProgramCache = () => {
     );
   };
 
-  const addSession = (programId: string, newSession: Session) => {
-    queryClient.setQueryData<ProgramWithSessions>(
+  const updateFullSession = (
+    programId: string,
+    sessionId: string,
+    updatedSession: SessionWithExercises
+  ) => {
+    queryClient.setQueryData<ProgramWithFullSessions>(
+      ["program", programId],
+      (oldData) => {
+        if (!oldData) return oldData;
+
+        return produce(oldData, (draft) => {
+          const sessionIndex = draft.sessions.findIndex((s) => s.id === sessionId);
+          if (sessionIndex !== -1) {
+            draft.sessions[sessionIndex] = updatedSession;
+          }
+        });
+      }
+    );
+  };
+
+  const addSession = (programId: string, newSession: SessionWithExercises) => {
+    queryClient.setQueryData<ProgramWithFullSessions>(
       ["program", programId],
       (oldData) => {
         if (!oldData) return oldData;
@@ -98,7 +140,7 @@ export const useUpdateProgramCache = () => {
   };
 
   const removeSession = (programId: string, sessionId: string) => {
-    queryClient.setQueryData<ProgramWithSessions>(
+    queryClient.setQueryData<ProgramWithFullSessions>(
       ["program", programId],
       (oldData) => {
         if (!oldData) return oldData;
@@ -110,5 +152,5 @@ export const useUpdateProgramCache = () => {
     );
   };
 
-  return { updateCache, updateSession, addSession, removeSession };
+  return { updateCache, updateSession, updateFullSession, addSession, removeSession };
 };

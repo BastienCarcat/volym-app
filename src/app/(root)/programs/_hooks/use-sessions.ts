@@ -1,9 +1,4 @@
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { upfetch } from "@/lib/up-fetch";
 import z from "zod";
 import { produce } from "immer";
@@ -12,39 +7,10 @@ import {
   sessionSchema,
   sessionWithExercisesSchema,
 } from "../schemas";
-import type { ProgramWithSessions } from "./use-programs";
-import { usePrefetchExercises } from "./use-exercise";
+import type { ProgramWithFullSessions } from "./use-programs";
 
 export type SessionWithExercises = z.infer<typeof sessionWithExercisesSchema>;
 export type Session = z.infer<typeof sessionSchema>;
-
-const fetchSession = async (
-  sessionId: string
-): Promise<SessionWithExercises> => {
-  const result = await upfetch(`/api/sessions/${sessionId}`, {
-    schema: z.object({ session: sessionWithExercisesSchema }),
-  });
-  return result.session;
-};
-
-export const useSession = (sessionId: string) => {
-  const prefetchExercises = usePrefetchExercises();
-
-  return useSuspenseQuery<SessionWithExercises>({
-    queryKey: ["session", sessionId],
-    queryFn: async () => {
-      const session = await fetchSession(sessionId);
-
-      const exerciseIds = session?.exercises.map((e) => {
-        return e.exerciseId;
-      });
-
-      // We prefetch exercises here to avoid multiple loading screen. All session load at once
-      await prefetchExercises(exerciseIds);
-      return session;
-    },
-  });
-};
 
 // TODO : put this into an action
 export const useCreateSession = () => {
@@ -65,20 +31,13 @@ export const useCreateSession = () => {
         session
       );
 
-      queryClient.setQueryData<ProgramWithSessions>(
+      queryClient.setQueryData<ProgramWithFullSessions>(
         ["program", params.programId],
         (old) => {
           if (!old) return old;
 
           return produce(old, (draft) => {
-            draft.sessions.push({
-              id: session.id,
-              name: session.name,
-              note: session.note,
-              day: session.day,
-              weekNumber: session.weekNumber,
-              templateId: session.templateId,
-            });
+            draft.sessions.push(session);
           });
         }
       );

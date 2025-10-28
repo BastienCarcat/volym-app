@@ -113,41 +113,9 @@ export const useExercise = (exerciseId: string) => {
     queryKey: queryKeys.exercises.detail(exerciseId),
     queryFn: () => fetchExercise(exerciseId),
     enabled: !!exerciseId,
-    // // Allow stale data to be shown while refetching
-    // refetchOnMount: true,
-    // refetchOnWindowFocus: false,
-    // // Determine if data is stale based on whether it has full details
-    // staleTime: (query) => {
-    //   const data = query.state.data as
-    //     | GymFitExercise
-    //     | GymFitMinimalExercise
-    //     | undefined;
-    //   // If data doesn't have targetMuscles, it's MinimalExercise -> stale immediately
-    //   if (data && !("targetMuscles" in data)) {
-    //     return 0;
-    //   }
-
-    //   return Infinity;
-    // },
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
   });
-};
-
-// Prefetch multiple exercises in parallel (server-side)
-export const usePrefetchExercises = () => {
-  const queryClient = useQueryClient();
-
-  // Prefetch all exercises in parallel
-  const prefetch = (exerciseIds: string[]) =>
-    Promise.all(
-      exerciseIds.map((exerciseId) =>
-        queryClient.prefetchQuery({
-          queryKey: queryKeys.exercises.detail(exerciseId),
-          queryFn: () => fetchExercise(exerciseId),
-        })
-      )
-    );
-
-  return prefetch;
 };
 
 // Hook to manage exercise cache
@@ -159,5 +127,12 @@ export const useExerciseCache = () => {
     queryClient.setQueryData(queryKeys.exercises.detail(exercise.id), exercise);
   };
 
-  return { setExerciseCache };
+  // Invalidate exercise cache to force refetch of full data
+  const invalidateExercise = (exerciseId: string) => {
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.exercises.detail(exerciseId),
+    });
+  };
+
+  return { setExerciseCache, invalidateExercise };
 };

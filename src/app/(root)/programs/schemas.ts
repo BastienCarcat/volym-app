@@ -64,6 +64,13 @@ export const programWithSessionsSchema = z.object({
   sessions: z.array(sessionSchema),
 });
 
+export const programWithFullSessionsSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  note: z.string().nullable(),
+  sessions: z.array(sessionWithExercisesSchema),
+});
+
 // *********** GymFit **************
 
 export const gymFitMinimalExerciseSchema = z.object({
@@ -104,4 +111,12 @@ export const SearchExercisesFiltersSchema = z.object({
   query: z.string().optional(),
   bodyPart: z.enum(BodyPart).optional(),
   equipment: z.string().optional(),
+});
+
+export const programWithFullSessionsAndExercisesSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  note: z.string().nullable(),
+  sessions: z.array(sessionWithExercisesSchema),
+  exercises: z.record(z.string(), gymFitExerciseSchema),
 });
