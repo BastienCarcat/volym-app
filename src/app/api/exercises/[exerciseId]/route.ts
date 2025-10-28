@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { upfetch } from "@/lib/up-fetch";
-import { gymFitExerciseSchema } from "@/app/(root)/workouts/schemas";
+import { gymFitExerciseSchema } from "@/lib/schemas/gymfit";
 
 const GYMFIT_API_BASE_URL = "https://gym-fit.p.rapidapi.com";
 
@@ -14,7 +14,7 @@ const pathParamsSchema = z.object({
 
 export const GET = userRoute
   .params(pathParamsSchema)
-  .handler(async (req, { params }) => {
+  .handler(async (_req, { params }) => {
     const apiKey = process.env.GYMFIT_API_KEY;
     if (!apiKey) {
       throw new SafeRouteError("GYMFIT_API_KEY is not configured", 500);

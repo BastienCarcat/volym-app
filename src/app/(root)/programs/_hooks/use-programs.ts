@@ -4,17 +4,16 @@ import { produce } from "immer";
 import z from "zod";
 import {
   programSchema,
-  programWithSessionsSchema,
   programWithFullSessionsSchema,
   programWithFullSessionsAndExercisesSchema,
-  sessionSchema,
-} from "../schemas";
-import { Session, SessionWithExercises } from "./use-sessions";
+} from "@/lib/schemas/programs";
+import { Session, SessionWithExercises } from "@/hooks/use-sessions";
 import { queryKeys } from "@/lib/tanstack/query-keys";
 
 export type Program = z.infer<typeof programSchema>;
-export type ProgramWithSessions = z.infer<typeof programWithSessionsSchema>;
-export type ProgramWithFullSessions = z.infer<typeof programWithFullSessionsSchema>;
+export type ProgramWithFullSessions = z.infer<
+  typeof programWithFullSessionsSchema
+>;
 export type ProgramWithFullSessionsAndExercises = z.infer<
   typeof programWithFullSessionsAndExercisesSchema
 >;
@@ -117,7 +116,9 @@ export const useUpdateProgramCache = () => {
         if (!oldData) return oldData;
 
         return produce(oldData, (draft) => {
-          const sessionIndex = draft.sessions.findIndex((s) => s.id === sessionId);
+          const sessionIndex = draft.sessions.findIndex(
+            (s) => s.id === sessionId
+          );
           if (sessionIndex !== -1) {
             draft.sessions[sessionIndex] = updatedSession;
           }
@@ -152,5 +153,11 @@ export const useUpdateProgramCache = () => {
     );
   };
 
-  return { updateCache, updateSession, updateFullSession, addSession, removeSession };
+  return {
+    updateCache,
+    updateSession,
+    updateFullSession,
+    addSession,
+    removeSession,
+  };
 };

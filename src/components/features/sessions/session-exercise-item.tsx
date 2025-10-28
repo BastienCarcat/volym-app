@@ -3,7 +3,6 @@
 import { ChevronDown, Dumbbell, MoreHorizontal, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Textarea, FieldWrapper } from "@/components/form";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -24,12 +23,14 @@ import {
   AccordionItem,
 } from "@/components/ui/accordion";
 import { useFieldArray, useFormContext } from "react-hook-form";
-import { useExercise } from "../../../_hooks/use-exercise";
+import { useExercise } from "@/hooks/use-exercise";
 import type { SessionFormValues } from "./session-card";
 import { SessionExerciseSet } from "./session-exercise-set";
 import { SetType } from "@/generated/prisma";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { FieldWrapper } from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
 
 interface SessionExerciseItemProps {
   exerciseIndex: number;

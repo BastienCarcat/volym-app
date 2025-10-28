@@ -16,12 +16,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/form/fields/inputs/input";
-import { FieldWrapper } from "@/components/form/fields/field-wrapper";
+import { Input } from "@/components/ui/input";
 
-import { createProgramSchema } from "../schemas";
-import { createProgram } from "../_actions/create-program.action";
-import { useRefreshPrograms } from "../_hooks/use-programs";
+import { createProgramSchema } from "@/lib/schemas/programs";
+import { createProgram } from "@/app/(root)/programs/_actions/create-program.action";
+import { useRefreshPrograms } from "@/app/(root)/programs/_hooks/use-programs";
+import { FieldWrapper } from "@/components/ui/form";
 
 interface CreateProgramDialogProps {
   open: boolean;

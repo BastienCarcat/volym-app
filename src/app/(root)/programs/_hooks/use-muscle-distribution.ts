@@ -2,9 +2,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { queryKeys } from "@/lib/tanstack/query-keys";
 import type { ProgramWithFullSessions } from "./use-programs";
-import type { SessionWithExercises } from "./use-sessions";
-import type { GymFitExercise } from "../types";
-import { BodyPart } from "../types";
+import type { SessionWithExercises } from "@/hooks/use-sessions";
+import type { GymFitExercise } from "@/lib/gymfit/types";
+import { BodyPart } from "@/lib/gymfit/types";
 
 export interface MuscleDistributionData {
   muscle: string;

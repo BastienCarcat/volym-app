@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { upfetch } from "@/lib/up-fetch";
-import { gymFitSearchExercisesResponseSchema } from "@/app/(root)/workouts/schemas";
+import { gymFitSearchExercisesResponseSchema } from "@/lib/schemas/gymfit";
 
 const GYMFIT_API_BASE_URL = "https://gym-fit.p.rapidapi.com";
 

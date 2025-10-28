@@ -1,6 +1,6 @@
 import { upfetch } from "@/lib/up-fetch";
-import { gymFitExerciseSchema } from "@/app/(root)/programs/schemas";
-import type { GymFitExercise } from "@/app/(root)/programs/types";
+import { type GymFitExercise } from "./types";
+import { gymFitExerciseSchema } from "../schemas/gymfit";
 
 const GYMFIT_API_BASE_URL = "https://gym-fit.p.rapidapi.com";
 

@@ -13,14 +13,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/form/fields/inputs/input";
-import { SelectInput } from "@/components/form/fields/inputs/select-input";
-import { FieldWrapper } from "@/components/form/fields/field-wrapper";
-import { Form, useZodForm } from "@/components/form/form";
+import { Input } from "@/components/ui/input";
+import { SelectInput } from "@/components/ui/select-input";
+import { FieldWrapper, Form, useZodForm } from "@/components/ui/form";
 
 import { Spinner } from "@/components/ui/spinner";
-import { createSessionSchema } from "../../../schemas";
-import { useCreateSession } from "../../../_hooks/use-sessions";
+import { createSessionSchema } from "@/lib/schemas/sessions";
+import { useCreateSession } from "@/hooks/use-sessions";
 import { useTemplates } from "@/app/(root)/templates/_hooks/use-templates";
 
 interface CreateSessionDialogProps {

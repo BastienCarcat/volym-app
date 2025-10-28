@@ -13,11 +13,8 @@ import { Spinner } from "@/components/ui/spinner";
 import {
   SearchExercisesFilters,
   type SearchExercisesFiltersValues,
-} from "./filters";
-import {
-  useAllExercises,
-  useExerciseCache,
-} from "@/app/(root)/programs/_hooks/use-exercise";
+} from "./exercise-filters";
+import { useAllExercises, useExerciseCache } from "@/hooks/use-exercise";
 import { SearchExerciseListItem } from "./exercise-item";
 
 interface SearchExercisesDrawerProps {
@@ -54,7 +51,7 @@ export function SearchExercisesDrawer({
   const { exercises, fetchNextPage, hasNextPage, isFetchingNextPage, status } =
     useAllExercises({
       query: filters?.query,
-      bodyPart: filters?.bodyPart,
+      bodyPart: filters?.bodyPart as any,
       equipment: filters?.equipment,
     });
   const { setExerciseCache, invalidateExercise } = useExerciseCache();

@@ -2,7 +2,7 @@
 
 import { notFound, useParams } from "next/navigation";
 import { useProgram } from "../_hooks/use-programs";
-import { ProgramHeader } from "./_components/ProgramHeader";
+import { ProgramHeader } from "./_components/program-header";
 import { WeekTabs } from "./_components/week-tabs";
 import { ContentContainer } from "@/components/layout/page/content";
 import { ProgramPageSkeleton } from "./_components/loaders/program-page-skeleton";

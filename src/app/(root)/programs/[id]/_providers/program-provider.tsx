@@ -7,7 +7,7 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
-import type { SessionWithExercises } from "../../_hooks/use-sessions";
+import type { SessionWithExercises } from "@/hooks/use-sessions";
 
 interface ProgramContextValue {
   programId: string;

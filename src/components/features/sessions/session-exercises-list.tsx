@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Plus } from "lucide-react";
 import type { SessionFormValues } from "./session-card";
 import { SessionExerciseItem } from "./session-exercise-item";
-import { SearchExercisesDrawer } from "./search-exercises/exercises-drawer";
+import { SearchExercisesDrawer } from "@/components/features/exercises/exercises-drawer";
 import { SetType } from "@/generated/prisma";
 
 export default function SessionExercisesList() {

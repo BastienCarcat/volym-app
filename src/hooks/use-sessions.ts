@@ -6,8 +6,8 @@ import {
   createSessionSchema,
   sessionSchema,
   sessionWithExercisesSchema,
-} from "../schemas";
-import type { ProgramWithFullSessions } from "./use-programs";
+} from "@/lib/schemas/sessions";
+import type { ProgramWithFullSessions } from "@/app/(root)/programs/_hooks/use-programs";
 
 export type SessionWithExercises = z.infer<typeof sessionWithExercisesSchema>;
 export type Session = z.infer<typeof sessionSchema>;

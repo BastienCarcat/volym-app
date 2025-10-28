@@ -10,9 +10,9 @@ import {
 } from "@/components/ui/card";
 import { signup } from "../_actions/signup.action";
 import { signupSchema } from "../_schemas/schemas";
-import { Form, useZodForm } from "@/components/form/form";
+import { Form, useZodForm } from "@/components/ui/form";
 import { toast } from "sonner";
-import { Input } from "@/components/form/fields/inputs/input";
+import { Input } from "@/components/ui/input";
 import { useAction } from "next-safe-action/hooks";
 import { FieldWrapper } from "@/components/form";
 

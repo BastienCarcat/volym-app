@@ -2,8 +2,8 @@
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import type { DayOfWeek } from "@/generated/prisma";
-import { SessionCard } from "./session/session-card";
-import { SessionEmptyCard } from "./session/session-empty-card";
+import { SessionCard } from "@/components/features/sessions/session-card";
+import { SessionEmptyCard } from "@/components/features/sessions/session-empty-card";
 import { ProgramInsights } from "./insights/program-insights";
 import { ProgramWithFullSessions } from "../../_hooks/use-programs";
 

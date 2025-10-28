@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma/prisma";
 import { getTemplateById } from "@/lib/database/get-template-by-id";
-import { createSessionSchema } from "@/app/(root)/programs/schemas";
+import { createSessionSchema } from "@/lib/schemas/sessions";
 import { getProgramById } from "@/lib/database/get-program-by-id";
 import { userRoute } from "@/lib/safe-route";
 import { SafeRouteError } from "@/lib/errors";

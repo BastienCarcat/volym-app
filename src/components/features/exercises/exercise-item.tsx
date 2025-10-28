@@ -1,16 +1,16 @@
 import Image from "next/image";
 import { Dumbbell } from "lucide-react";
-import { GymFitMinimalExercise } from "../../types";
+import { GymFitMinimalExercise } from "@/lib/gymfit/types";
 
-interface ExercisesListItemProps {
+interface SearchExercisesListItemProps {
   exercise: GymFitMinimalExercise;
   onSelect: (exerciseId: string) => void;
 }
 
-export function ExerciseListItem({
+export function SearchExerciseListItem({
   exercise,
   onSelect,
-}: ExercisesListItemProps) {
+}: SearchExercisesListItemProps) {
   return (
     <div
       className="hover:bg-accent cursor-pointer rounded-lg border p-4 transition-colors"

@@ -3,12 +3,24 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type * as React from "react";
 import type {
+  Control,
   SubmitHandler,
   UseFormProps,
   UseFormReturn,
 } from "react-hook-form";
-import { FormProvider, useForm, type FieldValues } from "react-hook-form";
+import {
+  Controller,
+  FormProvider,
+  useForm,
+  type FieldValues,
+} from "react-hook-form";
 import type * as z from "zod";
+import {
+  Field,
+  FieldLabel,
+  FieldDescription,
+  FieldError,
+} from "@/components/ui/field";
 
 /**
  * Form component with automatic FormProvider wrapping and submit handling
@@ -94,8 +106,67 @@ export const useZodForm = <T extends z.ZodType<any, any, any>>({
   });
 };
 
-// Export FormProvider alias for advanced use cases where you need context without the form wrapper
-export { FormProvider } from "react-hook-form";
+export interface FieldWrapperProps {
+  name: string;
+  control: Control<any>;
+  label?: string;
+  description?: string;
+  required?: boolean;
+  className?: string;
+  children: (renderProps: {
+    field: any;
+    fieldState: any;
+    formState: any;
+  }) => React.ReactNode;
+}
 
-// Export useFormContext for accessing form from nested components
-export { useFormContext } from "react-hook-form";
+/**
+ * FieldWrapper - Modern wrapper using shadcn Field components with React Hook Form Controller
+ *
+ * Provides a clean interface for custom inputs with automatic field state management.
+ * Just wrap your custom input and use {...renderProps} to get field, fieldState, and formState.
+ *
+ * Usage:
+ * <FieldWrapper name="note" control={control} label="Note">
+ *   {(renderProps) => <CustomInput {...renderProps} />}
+ * </FieldWrapper>
+ *
+ * Or even simpler:
+ * <FieldWrapper name="note" control={control} label="Note">
+ *   {(props) => <Textarea {...props.field} aria-invalid={props.fieldState.invalid} />}
+ * </FieldWrapper>
+ */
+export function FieldWrapper({
+  name,
+  control,
+  label,
+  description,
+  required,
+  className,
+  children,
+}: FieldWrapperProps) {
+  return (
+    <Controller
+      name={name}
+      control={control}
+      render={({ field, fieldState, formState }) => (
+        <Field className={className} data-invalid={fieldState.invalid}>
+          {label && (
+            <FieldLabel htmlFor={field.name}>
+              {label}
+              {required && <span className="text-destructive">*</span>}
+            </FieldLabel>
+          )}
+
+          {children({ field, fieldState, formState })}
+
+          {description && <FieldDescription>{description}</FieldDescription>}
+
+          {fieldState.invalid && fieldState.error && (
+            <FieldError errors={[fieldState.error]} />
+          )}
+        </Field>
+      )}
+    />
+  );
+}

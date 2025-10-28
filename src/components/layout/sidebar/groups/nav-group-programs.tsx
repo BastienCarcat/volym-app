@@ -13,7 +13,7 @@ import {
 import Link from "next/link";
 
 import { usePrograms } from "@/app/(root)/programs/_hooks/use-programs";
-import { CreateProgramDialog } from "@/app/(root)/programs/_components/create-program-dialog";
+import { CreateProgramDialog } from "@/components/features/programs/create-program-dialog";
 
 export function NavGroupPrograms() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);

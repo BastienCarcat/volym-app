@@ -9,10 +9,10 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Form, useZodForm } from "@/components/form/form";
+import { Form, useZodForm } from "@/components/ui/form";
 import { loginSchema } from "../_schemas/schemas";
 import { login } from "../_actions/login.action";
-import { Input } from "@/components/form/fields/inputs/input";
+import { Input } from "@/components/ui/input";
 import { FieldWrapper } from "@/components/form";
 import { useAction } from "next-safe-action/hooks";
 
@@ -93,7 +93,9 @@ export default function LoginPage() {
                   label="Password"
                   required
                 >
-                  {(props) => <Input {...props.field} type="password" required />}
+                  {(props) => (
+                    <Input {...props.field} type="password" required />
+                  )}
                 </FieldWrapper>
 
                 <div className="text-right">

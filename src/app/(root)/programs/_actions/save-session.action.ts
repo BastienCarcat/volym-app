@@ -3,7 +3,7 @@
 import { authActionClient } from "@/lib/nextSafeAction/client";
 import prisma from "@/lib/prisma/prisma";
 import { Prisma } from "@/generated/prisma";
-import { sessionWithExercisesSchema } from "../schemas";
+import { sessionWithExercisesSchema } from "@/lib/schemas/sessions";
 import { SafeActionError } from "@/lib/errors";
 
 export const saveSession = authActionClient

@@ -1,20 +1,16 @@
 "use client";
 
 import * as React from "react";
-import { useForm } from "react-hook-form";
-import {
-  Input,
-  SelectInput,
-  FieldWrapper,
-  useZodForm,
-} from "@/components/form";
-import { BodyPart } from "@/app/(root)/programs/types";
-import { SearchExercisesFiltersSchema } from "@/app/(root)/programs/schemas";
-import z from "zod";
 
-export type SearchExercisesFiltersValues = z.infer<
-  typeof SearchExercisesFiltersSchema
->;
+import {
+  BodyPart,
+  type SearchExercisesFilters as SearchExercisesFiltersValues,
+} from "@/lib/gymfit/types";
+import z from "zod";
+import { SearchExercisesFiltersSchema } from "@/lib/schemas/gymfit";
+import { FieldWrapper, useZodForm } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { SelectInput } from "@/components/ui/select-input";
 
 interface SearchExercisesFiltersProps {
   onFiltersChange: (filters: SearchExercisesFiltersValues) => void;

@@ -2,10 +2,12 @@
 
 import { Minus, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { FieldWrapper, NumberInput, DurationInput } from "@/components/form";
 import { useFormContext } from "react-hook-form";
 import type { SessionFormValues } from "./session-card";
 import { Badge } from "@/components/ui/badge";
+import { NumberInput } from "@/components/ui/number-input";
+import { FieldWrapper } from "@/components/ui/form";
+import { DurationInput } from "@/components/ui/duration-input";
 
 interface SessionExerciseSetProps {
   exerciseIndex: number;

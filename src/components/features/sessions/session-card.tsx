@@ -14,16 +14,15 @@ import { Save, BookmarkPlus } from "lucide-react";
 import {
   useUpdateSessionCache,
   type SessionWithExercises,
-} from "../../../_hooks/use-sessions";
-import { FieldWrapper, Form, TitleInput, useZodForm } from "@/components/form";
-import { sessionWithExercisesSchema } from "../../../schemas";
+} from "@/hooks/use-sessions";
+import { sessionWithExercisesSchema } from "@/lib/schemas/sessions";
 import { useAction } from "next-safe-action/hooks";
-import { saveSession } from "../../../_actions/save-session.action";
-import { saveSessionAsTemplate } from "../../../_actions/save-session-as-template.action";
+import { saveSession } from "@/app/(root)/programs/_actions/save-session.action";
+import { saveSessionAsTemplate } from "@/app/(root)/programs/_actions/save-session-as-template.action";
 import z from "zod";
 import SessionExercisesList from "./session-exercises-list";
 import { toast } from "sonner";
-import { useUpdateProgramCache } from "../../../_hooks/use-programs";
+import { useUpdateProgramCache } from "@/app/(root)/programs/_hooks/use-programs";
 import { useWarnIfUnsavedChanges } from "@/hooks/use-warn-if-unsaved-changes";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -32,8 +31,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useUpdateTemplatesCache } from "@/app/(root)/templates/_hooks/use-templates";
-import { useProgramContext } from "../../_providers/program-provider";
+import { useProgramContext } from "@/app/(root)/programs/[id]/_providers/program-provider";
 import { useWatch } from "react-hook-form";
+import { FieldWrapper, Form, useZodForm } from "@/components/ui/form";
+import { TitleInput } from "@/components/ui/title-input";
 
 interface SessionCardProps {
   session: SessionWithExercises;
@@ -65,6 +66,7 @@ export function SessionCard({ session, programId }: SessionCardProps) {
     });
     return () => subscription.unsubscribe();
   }, [form, session.id, setActiveSession]);
+
   useWarnIfUnsavedChanges(
     form.formState.isDirty,
     "Your session have unsaved changes. Are you sure you want to leave?"
