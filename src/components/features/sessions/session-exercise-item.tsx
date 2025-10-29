@@ -31,6 +31,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { FieldWrapper } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
+import { SessionSet } from "@/hooks/use-sessions";
 
 interface SessionExerciseItemProps {
   exerciseIndex: number;
@@ -54,6 +55,7 @@ export function SessionExerciseItem({
     fields: sets,
     append,
     remove,
+    insert,
   } = useFieldArray({
     control,
     name: `exercises.${exerciseIndex}.sets`,
@@ -66,16 +68,12 @@ export function SessionExerciseItem({
     setValue(isOpen ? "" : `exercise-${exerciseIndex}`);
   };
 
-  const handleSetAdd = (afterIndex: number) => {
-    const newSet = {
-      weight: 0,
-      reps: 0,
-      rest: null,
-      type: SetType.Normal,
-      rpe: null,
-      order: afterIndex + 1,
-    };
-    append(newSet);
+  const handleSetAdd = (previousSet: SessionSet, index: number) => {
+    // const newSet: SessionSet = {
+    //   ...previousSet,
+    //   order: previousSet.order + 1,
+    // };
+    insert(index, previousSet);
   };
 
   const handleSetRemove = (setIndex: number) => {
@@ -198,7 +196,7 @@ export function SessionExerciseItem({
               </FieldWrapper>
               <div className="mt-4 flex justify-between">
                 {/* Sets Table */}
-                <div className="grid grid-cols-[auto_80px_80px_80px_auto] items-center gap-x-2 gap-y-1">
+                <div className="grid grid-cols-[auto_80px_80px_80px_110px_auto] items-center gap-x-2 gap-y-1">
                   {/* Table Header */}
                   <div className="contents">
                     <div className="w-6"></div>
@@ -211,6 +209,9 @@ export function SessionExerciseItem({
                     <div className="rounded-md text-center text-xs font-semibold text-gray-700">
                       Rest
                     </div>
+                    <div className="rounded-md text-center text-xs font-semibold text-gray-700">
+                      Type
+                    </div>
                     <div></div>
                   </div>
 
@@ -220,7 +221,7 @@ export function SessionExerciseItem({
                       key={set.id}
                       exerciseIndex={exerciseIndex}
                       setIndex={setIndex}
-                      onAddSet={() => handleSetAdd(setIndex)}
+                      onAddSet={() => handleSetAdd(set, setIndex + 1)}
                       onRemoveSet={() => handleSetRemove(setIndex)}
                       canRemove={sets.length > 1}
                     />

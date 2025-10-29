@@ -5,12 +5,14 @@ import { produce } from "immer";
 import {
   createSessionSchema,
   sessionSchema,
+  sessionSetSchema,
   sessionWithExercisesSchema,
 } from "@/lib/schemas/sessions";
 import type { ProgramWithFullSessions } from "@/app/(root)/programs/_hooks/use-programs";
 
 export type SessionWithExercises = z.infer<typeof sessionWithExercisesSchema>;
 export type Session = z.infer<typeof sessionSchema>;
+export type SessionSet = z.infer<typeof sessionSetSchema>;
 
 // TODO : put this into an action
 export const useCreateSession = () => {

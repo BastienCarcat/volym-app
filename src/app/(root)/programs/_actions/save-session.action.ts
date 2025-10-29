@@ -50,13 +50,13 @@ export const saveSession = authActionClient
           // Create new exercise with nested sets
           const newSets = ex.sets
             .filter((s) => !s.id)
-            .map((s) => ({
+            .map((s, i) => ({
               weight: s.weight,
               reps: s.reps,
               rest: s.rest,
               type: s.type,
               rpe: s.rpe,
-              order: s.order,
+              order: i + 1,
             }));
 
           exerciseCreates.push({
@@ -91,14 +91,14 @@ export const saveSession = authActionClient
           }
 
           // Sets to create / update for existing exercises only
-          for (const s of ex.sets) {
+          for (const [i, s] of ex.sets.entries()) {
             const setData = {
               weight: s.weight,
               reps: s.reps,
               rest: s.rest,
               type: s.type,
               rpe: s.rpe,
-              order: s.order,
+              order: i + 1,
             };
 
             if (!s.id) {

@@ -8,6 +8,15 @@ import { Badge } from "@/components/ui/badge";
 import { NumberInput } from "@/components/ui/number-input";
 import { FieldWrapper } from "@/components/ui/form";
 import { DurationInput } from "@/components/ui/duration-input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { SetType } from "@/generated/prisma";
+import { getSetTypeLabel } from "./set-type-badge";
 
 interface SessionExerciseSetProps {
   exerciseIndex: number;
@@ -24,11 +33,17 @@ export function SessionExerciseSet({
   onRemoveSet,
   canRemove,
 }: SessionExerciseSetProps) {
-  const { control } = useFormContext<SessionFormValues>();
+  const { control, watch } = useFormContext<SessionFormValues>();
+
+  const setType = watch(
+    `exercises.${exerciseIndex}.sets.${setIndex}.type`
+  ) as SetType;
 
   return (
     <div className="contents">
       {/* Set Number Badge */}
+
+      {/* <SetTypeBadge type={setType} /> */}
       <Badge
         variant="outline"
         className="flex h-6 w-6 items-center justify-center rounded-full p-0 text-xs"
@@ -37,7 +52,7 @@ export function SessionExerciseSet({
       </Badge>
 
       <FieldWrapper
-        name={`exercises.${exerciseIndex}.sets.${setIndex}.weight`}
+        name={`exercises.${exerciseIndex}.sets.${setIndex}.order`}
         control={control}
       >
         {(props) => (
@@ -78,6 +93,30 @@ export function SessionExerciseSet({
             min={0}
             className="text-right"
           />
+        )}
+      </FieldWrapper>
+
+      <FieldWrapper
+        name={`exercises.${exerciseIndex}.sets.${setIndex}.type`}
+        control={control}
+      >
+        {(props) => (
+          <Select
+            value={props.field.value}
+            onValueChange={props.field.onChange}
+          >
+            <SelectTrigger size="sm" className="w-[110px] text-xs">
+              <SelectValue placeholder="Type">
+                {getSetTypeLabel(setType)}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={SetType.Normal}>Normal</SelectItem>
+              <SelectItem value={SetType.WarmUp}>Warm-up</SelectItem>
+              <SelectItem value={SetType.DropsSet}>Drop Set</SelectItem>
+              <SelectItem value={SetType.Failure}>Failure</SelectItem>
+            </SelectContent>
+          </Select>
         )}
       </FieldWrapper>
 

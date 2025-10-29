@@ -30,7 +30,6 @@ export const getSessionById = async (sessionId: string) => {
               rest: true,
               type: true,
               rpe: true,
-              order: true,
             },
           },
         },

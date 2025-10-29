@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-import { Save, BookmarkPlus } from "lucide-react";
+import { Save, BookmarkPlus, Clock } from "lucide-react";
 import {
   useUpdateSessionCache,
   type SessionWithExercises,
@@ -35,6 +35,10 @@ import { useProgramContext } from "@/app/(root)/programs/[id]/_providers/program
 import { useWatch } from "react-hook-form";
 import { FieldWrapper, Form, useZodForm } from "@/components/ui/form";
 import { TitleInput } from "@/components/ui/title-input";
+import {
+  calculateSessionDuration,
+  formatSessionDuration,
+} from "@/lib/sessions/calculate-duration";
 
 interface SessionCardProps {
   session: SessionWithExercises;
@@ -117,6 +121,19 @@ export function SessionCard({ session, programId }: SessionCardProps) {
 
   const canSave = form.formState.isDirty && !isPending;
 
+  const exercises = useWatch({
+    control: form.control,
+    name: "exercises",
+  });
+
+  const estimatedDuration = React.useMemo(() => {
+    const currentSession: SessionWithExercises = {
+      ...session,
+      exercises: exercises || [],
+    };
+    return calculateSessionDuration(currentSession);
+  }, [exercises, session]);
+
   return (
     <Form
       form={form}
@@ -124,7 +141,7 @@ export function SessionCard({ session, programId }: SessionCardProps) {
       disabled={isPending}
       className="flex h-full min-h-0 flex-col"
     >
-      <Card className="h-full min-h-0">
+      <Card className="relative h-full min-h-0">
         <CardHeader className="flex-shrink-0">
           <div className="flex items-center justify-between gap-4">
             <CardTitle className="flex-1">
@@ -141,38 +158,50 @@ export function SessionCard({ session, programId }: SessionCardProps) {
               </FieldWrapper>
             </CardTitle>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleSaveAsTemplate}
-                  disabled={isSavingAsTemplate}
-                  className="flex-shrink-0"
-                >
-                  {isSavingAsTemplate ? (
-                    <Spinner />
-                  ) : (
-                    <BookmarkPlus className="h-4 w-4" />
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Save session as model</p>
-              </TooltipContent>
-            </Tooltip>
+            <div className="flex flex-shrink-0 items-center gap-2">
+              {estimatedDuration > 0 && (
+                <div className="text-muted-foreground flex items-center gap-1.5 rounded-md border px-2 py-1 text-sm">
+                  <span>{formatSessionDuration(estimatedDuration)}</span>
+                  <Clock className="h-4 w-4" />
+                </div>
+              )}
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleSaveAsTemplate}
+                    disabled={isSavingAsTemplate}
+                    className="flex-shrink-0"
+                  >
+                    {isSavingAsTemplate ? (
+                      <Spinner />
+                    ) : (
+                      <BookmarkPlus className="h-4 w-4" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Save session as model</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="min-h-0 flex-1 overflow-hidden">
           <SessionExercisesList />
         </CardContent>
-        <CardFooter className="flex flex-shrink-0 justify-end">
-          <Button disabled={!canSave} className="shadow-lg" type="submit">
-            <Save className="mr-2 h-4 w-4" />
-            {isPending ? "Saving..." : "Save session"}
-          </Button>
-        </CardFooter>
+
+        <Button
+          disabled={!canSave}
+          className="absolute right-0 bottom-0 -translate-4 transform shadow-lg"
+          type="submit"
+        >
+          <Save className="mr-2 h-4 w-4" />
+          {isPending ? "Saving..." : "Save session"}
+        </Button>
       </Card>
     </Form>
   );

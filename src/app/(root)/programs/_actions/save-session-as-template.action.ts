@@ -43,13 +43,13 @@ export const saveSessionAsTemplate = authActionClient
               supersetId: sessionExercise.supersetId,
               sets: {
                 createMany: {
-                  data: sessionExercise.sets.map((set) => ({
+                  data: sessionExercise.sets.map((set, i) => ({
                     weight: set.weight,
                     reps: set.reps,
                     rest: set.rest,
                     type: set.type,
                     rpe: set.rpe,
-                    order: set.order,
+                    order: i + 1,
                   })),
                 },
               },

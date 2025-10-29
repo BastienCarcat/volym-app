@@ -71,7 +71,6 @@ export const getProgramWithFullSessions = async (programId: string) => {
                   rest: true,
                   type: true,
                   rpe: true,
-                  order: true,
                 },
                 orderBy: {
                   order: "asc",

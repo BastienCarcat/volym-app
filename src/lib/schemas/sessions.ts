@@ -26,7 +26,7 @@ export const sessionSetSchema = z.object({
   rest: z.number().positive().nullable(),
   type: z.enum(SetType),
   rpe: z.number().positive().nullable(),
-  order: z.number().positive(),
+  // order: z.number().positive(),
 });
 
 export const sessionExerciseSchema = z.object({

@@ -100,7 +100,7 @@ pnpm run format      # Format with Prettier
 
 ### Important
 
-- When you create `/api` routes ALWAYS do like @src/app/api/sessions/[id]/route.ts and use the best @src/lib/safe-route.ts files to do it.
+- When you create `/api` routes ALWAYS do like @src/app/api/programs/[id]/route.ts and use the best @src/lib/safe-route.ts files to do it.
 - When you create `Server Function` please always look code in @src/app/(root)/programs/\_actions/save-session.action.ts and use @src/lib/nextSafeAction/client.ts to do it. Each action should be name `action-name.action.ts`
 - For fetch request, always use @src/lib/up-fetch.ts
 - Always use `useMutation` or `useQuery` when you work with query (with `upfetch`)
