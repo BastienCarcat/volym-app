@@ -10,6 +10,15 @@ import { SessionExerciseItem } from "./session-exercise-item";
 import { SearchExercisesDrawer } from "@/components/features/exercises/exercises-drawer";
 import { SetType } from "@/generated/prisma";
 
+export const DEFAULT_SET_VALUES = {
+  weight: null as unknown as number, // Hack to set a null default value without type breaking
+  reps: null as unknown as number,
+  rest: null,
+  type: SetType.Normal,
+  rpe: null,
+  order: 1,
+};
+
 export default function SessionExercisesList() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { control } = useFormContext<SessionFormValues>();
@@ -33,16 +42,7 @@ export default function SessionExercisesList() {
       note: null,
       order: sessionExercises.length + 1,
       supersetId: null,
-      sets: [
-        {
-          weight: 0,
-          reps: 0,
-          rest: null,
-          type: SetType.Normal,
-          rpe: null,
-          order: 1,
-        },
-      ],
+      sets: [DEFAULT_SET_VALUES],
     };
     append(newExercise);
   };

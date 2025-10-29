@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { ComponentProps } from "react";
 
 const ContentContainerVariants = cva(
-  "p-6 flex container overflow-hidden w-full",
+  "p-6 flex container mx-auto overflow-hidden w-full",
   {
     variants: {
       spacing: {

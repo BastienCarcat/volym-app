@@ -21,8 +21,8 @@ export const sessionSchema = z.object({
 
 export const sessionSetSchema = z.object({
   id: z.string().optional(),
-  weight: z.number().positive("Kg > 0"),
-  reps: z.number().positive("Reps > 0"),
+  weight: z.number(" ").positive("Kg > 0"),
+  reps: z.number(" ").positive("Reps > 0"),
   rest: z.number().positive().nullable(),
   type: z.enum(SetType),
   rpe: z.number().positive().nullable(),
