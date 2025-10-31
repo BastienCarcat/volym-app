@@ -2,33 +2,33 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { upfetch } from "@/lib/up-fetch";
 import z from "zod";
 import { produce } from "immer";
+import { createSessionFormSchema } from "@/lib/schemas/sessions.form.schema";
 import {
-  createSessionSchema,
-  sessionSchema,
-  sessionSetSchema,
-  sessionWithExercisesSchema,
-} from "@/lib/schemas/sessions";
+  sessionDbSchema,
+  setDbSchema,
+  sessionWithItemsDbSchema,
+} from "@/lib/schemas/sessions.schema";
 import type { ProgramWithFullSessions } from "@/app/(root)/programs/_hooks/use-programs";
 
-export type SessionWithExercises = z.infer<typeof sessionWithExercisesSchema>;
-export type Session = z.infer<typeof sessionSchema>;
-export type SessionSet = z.infer<typeof sessionSetSchema>;
+export type SessionWithItems = z.infer<typeof sessionWithItemsDbSchema>;
+export type Session = z.infer<typeof sessionDbSchema>;
+export type Set = z.infer<typeof setDbSchema>;
 
 // TODO : put this into an action
 export const useCreateSession = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (params: z.infer<typeof createSessionSchema>) => {
+    mutationFn: async (params: z.infer<typeof createSessionFormSchema>) => {
       const result = await upfetch(`/api/sessions`, {
         method: "POST",
-        schema: z.object({ session: sessionWithExercisesSchema }),
+        schema: z.object({ session: sessionWithItemsDbSchema }),
         body: params,
       });
       return result.session;
     },
     onSuccess: (session, params) => {
-      queryClient.setQueryData<SessionWithExercises>(
+      queryClient.setQueryData<SessionWithItems>(
         ["session", session.id],
         session
       );
@@ -52,7 +52,7 @@ export const useCreateSession = () => {
 export const useUpdateSessionCache = () => {
   const queryClient = useQueryClient();
 
-  const updateCache = (sessionId: string, data: SessionWithExercises) => {
+  const updateCache = (sessionId: string, data: SessionWithItems) => {
     queryClient.setQueryData(["session", sessionId], data);
   };
 

@@ -43,6 +43,28 @@ enum DayOfWeek {
   Sunday
 }
 
+enum ProgramType {
+  Days
+  Cycle
+}
+
+enum CircuitType {
+  Superset
+  Biset
+  Triset
+  GiantSet
+  AMRAP
+}
+
+enum SessionItemType {
+  Exercise
+  Circuit
+}
+
+enum CircuitItemType {
+  Exercise
+}
+
 // ==========================================
 // USERS
 // ==========================================
@@ -66,12 +88,13 @@ model User {
 // ==========================================
 
 model Program {
-  id        String    @id @default(uuid())
+  id        String      @id @default(uuid())
   createdBy String
-  note      String?   @db.Text
+  note      String?     @db.Text
   name      String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  type      ProgramType @default(Days)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
   deletedAt DateTime?
 
   user     User      @relation(fields: [createdBy], references: [id])
@@ -82,20 +105,22 @@ model Program {
 }
 
 model Session {
-  id         String    @id @default(uuid())
+  id         String     @id @default(uuid())
   programId  String
   templateId String?
   name       String
-  note       String?   @db.Text
-  day        DayOfWeek
-  weekNumber Int?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  note       String?    @db.Text
+  day        DayOfWeek?
+  cycleDay   Int?
+  isRestDay  Boolean    @default(false)
+  weekNumber Int        @default(1)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
   deletedAt  DateTime?
 
-  program   Program           @relation(fields: [programId], references: [id])
-  template  WorkoutTemplate?  @relation(fields: [templateId], references: [id])
-  exercises SessionExercise[]
+  program      Program          @relation(fields: [programId], references: [id])
+  template     WorkoutTemplate? @relation(fields: [templateId], references: [id])
+  sessionItems SessionItem[]
 
   @@index([programId])
   @@index([templateId])
@@ -116,89 +141,137 @@ model WorkoutTemplate {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  user      User               @relation(fields: [createdBy], references: [id])
-  exercises TemplateExercise[]
-  sessions  Session[]
+  user          User           @relation(fields: [createdBy], references: [id])
+  sessions      Session[]
+  templateItems TemplateItem[]
 
   @@index([createdBy])
   @@index([isPublic])
   @@index([deletedAt])
 }
 
-model TemplateExercise {
-  id         String    @id @default(uuid())
-  templateId String
-  exerciseId String
-  note       String?   @db.Text
+// ==========================================
+// SESSION & TEMPLATE ITEMS (Polymorphic)
+// ==========================================
+
+model SessionItem {
+  id         String          @id @default(uuid())
+  type       SessionItemType
   order      Int
-  supersetId String?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  sessionId  String
+  exerciseId String?         @unique
+  circuitId  String?         @unique
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  deletedAt  DateTime?
+
+  session  Session   @relation(fields: [sessionId], references: [id])
+  exercise Exercise? @relation(fields: [exerciseId], references: [id])
+  circuit  Circuit?  @relation(fields: [circuitId], references: [id])
+
+  @@index([sessionId, order])
+  @@index([exerciseId])
+  @@index([circuitId])
+  @@index([deletedAt])
+}
+
+model TemplateItem {
+  id         String          @id @default(uuid())
+  type       SessionItemType
+  order      Int
+  templateId String
+  exerciseId String?         @unique
+  circuitId  String?         @unique
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
   deletedAt  DateTime?
 
   template WorkoutTemplate @relation(fields: [templateId], references: [id])
-  sets     TemplateSet[]
+  exercise Exercise?       @relation(fields: [exerciseId], references: [id])
+  circuit  Circuit?        @relation(fields: [circuitId], references: [id])
 
-  @@index([templateId])
-  @@index([deletedAt])
-}
-
-model TemplateSet {
-  id                 String    @id @default(uuid())
-  templateExerciseId String
-  weight             Int
-  reps               Int
-  rest               Int?
-  order              Int
-  type               SetType   @default(Normal)
-  rpe                Int?
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
-  deletedAt          DateTime?
-
-  templateExercise TemplateExercise @relation(fields: [templateExerciseId], references: [id])
-
-  @@index([templateExerciseId])
+  @@index([templateId, order])
+  @@index([exerciseId])
+  @@index([circuitId])
   @@index([deletedAt])
 }
 
 // ==========================================
-// SESSION EXERCISES & SETS
+// CIRCUITS (Intensity Techniques)
 // ==========================================
 
-model SessionExercise {
-  id         String    @id @default(uuid())
-  sessionId  String
-  exerciseId String
-  note       String?   @db.Text
+model Circuit {
+  id        String      @id @default(uuid())
+  type      CircuitType
+  duration  Int?
+  rest      Int?
+  note      String?     @db.Text
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  deletedAt DateTime?
+
+  circuitItems  CircuitItem[]
+  sessionItems  SessionItem[]
+  templateItems TemplateItem[]
+
+  @@index([deletedAt])
+}
+
+model CircuitItem {
+  id         String          @id @default(uuid())
+  type       CircuitItemType
   order      Int
-  supersetId String?
+  circuitId  String
+  exerciseId String?         @unique
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  deletedAt  DateTime?
+
+  circuit  Circuit   @relation(fields: [circuitId], references: [id])
+  exercise Exercise? @relation(fields: [exerciseId], references: [id])
+
+  @@index([circuitId, order])
+  @@index([exerciseId])
+  @@index([deletedAt])
+}
+
+// ==========================================
+// EXERCISES & SETS (Unified)
+// ==========================================
+
+model Exercise {
+  id         String    @id @default(uuid())
+  exerciseId String // GymFit ID
+  note       String?   @db.Text
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   deletedAt  DateTime?
 
-  session Session      @relation(fields: [sessionId], references: [id])
-  sets    SessionSet[]
+  sets Set[]
 
-  @@index([sessionId])
+  // Backrefs (exactly 1 must exist)
+  sessionItem  SessionItem?
+  templateItem TemplateItem?
+  circuitItem  CircuitItem?
+
   @@index([deletedAt])
 }
 
-model SessionSet {
-  id                String    @id @default(uuid())
-  sessionExerciseId String
-  weight            Int
-  reps              Int
-  rest              Int?
-  order             Int
-  type              SetType   @default(Normal)
-  rpe               Int?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  deletedAt         DateTime?
+model Set {
+  id         String    @id @default(uuid())
+  exerciseId String
+  weight     Int?
+  reps       Int?
+  rest       Int?
+  order      Int
+  type       SetType   @default(Normal)
+  rpe        Int?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
 
-  sessionExercise SessionExercise @relation(fields: [sessionExerciseId], references: [id])
+  exercise Exercise @relation(fields: [exerciseId], references: [id])
 
-  @@index([sessionExerciseId])
+  @@index([exerciseId, order])
   @@index([deletedAt])
 }

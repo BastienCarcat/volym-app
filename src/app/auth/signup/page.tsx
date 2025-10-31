@@ -14,7 +14,7 @@ import { Form, useZodForm } from "@/components/ui/form";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { useAction } from "next-safe-action/hooks";
-import { FieldWrapper } from "@/components/form";
+import { FieldWrapper } from "@/components/ui/form";
 
 export default function SignUpForm() {
   const form = useZodForm({

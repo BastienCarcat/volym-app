@@ -1,13 +1,13 @@
 "use client";
 
-import type { DbProgram } from "@/lib/database/get-program-by-id";
+import type { ProgramWithFullSessions } from "@/app/(root)/programs/_hooks/use-programs";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 interface ProgramHeaderProps {
-  program: NonNullable<DbProgram>;
+  program: ProgramWithFullSessions;
 }
 
 export function ProgramHeader({ program }: ProgramHeaderProps) {

@@ -7,7 +7,7 @@ import {
   programWithFullSessionsSchema,
   programWithFullSessionsAndExercisesSchema,
 } from "@/lib/schemas/programs";
-import { Session, SessionWithExercises } from "@/hooks/use-sessions";
+import { Session, SessionWithItems } from "@/hooks/use-sessions";
 import { queryKeys } from "@/lib/tanstack/query-keys";
 
 export type Program = z.infer<typeof programSchema>;
@@ -108,7 +108,7 @@ export const useUpdateProgramCache = () => {
   const updateFullSession = (
     programId: string,
     sessionId: string,
-    updatedSession: SessionWithExercises
+    updatedSession: SessionWithItems
   ) => {
     queryClient.setQueryData<ProgramWithFullSessions>(
       ["program", programId],
@@ -127,7 +127,7 @@ export const useUpdateProgramCache = () => {
     );
   };
 
-  const addSession = (programId: string, newSession: SessionWithExercises) => {
+  const addSession = (programId: string, newSession: SessionWithItems) => {
     queryClient.setQueryData<ProgramWithFullSessions>(
       ["program", programId],
       (oldData) => {

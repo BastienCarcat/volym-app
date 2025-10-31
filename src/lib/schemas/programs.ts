@@ -1,28 +1,33 @@
 import { z } from "zod";
-import { sessionWithExercisesSchema } from "./sessions";
+import { sessionWithItemsDbSchema } from "./sessions.schema";
 import { gymFitExerciseSchema } from "./gymfit";
+import { ProgramType } from "@/generated/prisma";
 
 export const createProgramSchema = z.object({
   name: z.string().min(1, "Name is required"),
+  type: z.enum(ProgramType).default("Days"),
 });
 
 export const programSchema = z.object({
   id: z.string(),
   name: z.string(),
   note: z.string().nullable(),
+  type: z.enum(ProgramType),
 });
 
 export const programWithFullSessionsSchema = z.object({
   id: z.string(),
   name: z.string(),
   note: z.string().nullable(),
-  sessions: z.array(sessionWithExercisesSchema),
+  type: z.enum(ProgramType),
+  sessions: z.array(sessionWithItemsDbSchema),
 });
 
 export const programWithFullSessionsAndExercisesSchema = z.object({
   id: z.string(),
   name: z.string(),
   note: z.string().nullable(),
-  sessions: z.array(sessionWithExercisesSchema),
+  type: z.enum(ProgramType),
+  sessions: z.array(sessionWithItemsDbSchema),
   exercises: z.record(z.string(), gymFitExerciseSchema),
 });

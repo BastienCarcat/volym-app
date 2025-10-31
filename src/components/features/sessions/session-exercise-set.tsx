@@ -19,7 +19,7 @@ import { SetType } from "@/generated/prisma";
 import { getSetTypeLabel } from "./set-type-badge";
 
 interface SessionExerciseSetProps {
-  exerciseIndex: number;
+  basePath: string;
   setIndex: number;
   onAddSet: (insertAfterIndex: number) => void;
   onRemoveSet: () => void;
@@ -27,7 +27,7 @@ interface SessionExerciseSetProps {
 }
 
 export function SessionExerciseSet({
-  exerciseIndex,
+  basePath,
   setIndex,
   onAddSet,
   onRemoveSet,
@@ -35,9 +35,7 @@ export function SessionExerciseSet({
 }: SessionExerciseSetProps) {
   const { control, watch } = useFormContext<SessionFormValues>();
 
-  const setType = watch(
-    `exercises.${exerciseIndex}.sets.${setIndex}.type`
-  ) as SetType;
+  const setType = watch(`${basePath}.sets.${setIndex}.type` as any) as SetType;
 
   return (
     <div className="contents">
@@ -52,7 +50,7 @@ export function SessionExerciseSet({
       </Badge>
 
       <FieldWrapper
-        name={`exercises.${exerciseIndex}.sets.${setIndex}.order`}
+        name={`${basePath}.sets.${setIndex}.weight` as any}
         control={control}
       >
         {(props) => (
@@ -67,7 +65,7 @@ export function SessionExerciseSet({
       </FieldWrapper>
 
       <FieldWrapper
-        name={`exercises.${exerciseIndex}.sets.${setIndex}.reps`}
+        name={`${basePath}.sets.${setIndex}.reps` as any}
         control={control}
       >
         {(props) => (
@@ -82,7 +80,7 @@ export function SessionExerciseSet({
       </FieldWrapper>
 
       <FieldWrapper
-        name={`exercises.${exerciseIndex}.sets.${setIndex}.rest`}
+        name={`${basePath}.sets.${setIndex}.rest` as any}
         control={control}
       >
         {(props) => (
@@ -97,7 +95,7 @@ export function SessionExerciseSet({
       </FieldWrapper>
 
       <FieldWrapper
-        name={`exercises.${exerciseIndex}.sets.${setIndex}.type`}
+        name={`${basePath}.sets.${setIndex}.type` as any}
         control={control}
       >
         {(props) => (

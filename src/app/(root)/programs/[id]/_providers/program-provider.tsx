@@ -7,13 +7,15 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
-import type { SessionWithExercises } from "@/hooks/use-sessions";
+import type { SessionWithItems } from "@/hooks/use-sessions";
 
 interface ProgramContextValue {
   programId: string;
   activeSessionId?: string;
-  activeSessionFormValues?: SessionWithExercises;
-  setActiveSession: (sessionId: string, values: SessionWithExercises) => void;
+  activeSessionFormValues?: SessionWithItems;
+  currentWeek: number;
+  setCurrentWeek: (week: number) => void;
+  setActiveSession: (sessionId: string, values: SessionWithItems) => void;
   resetActiveSession: (sessionId: string) => void;
   clearActiveSession: () => void;
 }
@@ -28,11 +30,12 @@ interface ProgramProviderProps {
 export function ProgramProvider({ programId, children }: ProgramProviderProps) {
   const [activeSessionId, setActiveSessionId] = useState<string | undefined>();
   const [activeSessionFormValues, setActiveSessionFormValues] = useState<
-    SessionWithExercises | undefined
+    SessionWithItems | undefined
   >();
+  const [currentWeek, setCurrentWeek] = useState<number>(1);
 
   const setActiveSession = useCallback(
-    (sessionId: string, values: SessionWithExercises) => {
+    (sessionId: string, values: SessionWithItems) => {
       setActiveSessionId(sessionId);
       setActiveSessionFormValues(values);
     },
@@ -55,6 +58,8 @@ export function ProgramProvider({ programId, children }: ProgramProviderProps) {
         programId,
         activeSessionId,
         activeSessionFormValues,
+        currentWeek,
+        setCurrentWeek,
         setActiveSession,
         resetActiveSession,
         clearActiveSession,

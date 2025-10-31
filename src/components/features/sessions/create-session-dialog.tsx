@@ -18,13 +18,14 @@ import { SelectInput } from "@/components/ui/select-input";
 import { FieldWrapper, Form, useZodForm } from "@/components/ui/form";
 
 import { Spinner } from "@/components/ui/spinner";
-import { createSessionSchema } from "@/lib/schemas/sessions";
+import { createSessionFormSchema } from "@/lib/schemas/sessions.form.schema";
 import { useCreateSession } from "@/hooks/use-sessions";
 import { useTemplates } from "@/app/(root)/templates/_hooks/use-templates";
 
 interface CreateSessionDialogProps {
   programId: string;
   day: DayOfWeek;
+  weekNumber: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -32,17 +33,19 @@ interface CreateSessionDialogProps {
 export function CreateSessionDialog({
   programId,
   day,
+  weekNumber,
   open,
   onOpenChange,
 }: CreateSessionDialogProps) {
   const { data: templates = [] } = useTemplates();
 
   const form = useZodForm({
-    schema: createSessionSchema,
+    schema: createSessionFormSchema,
     defaultValues: {
       programId,
       name: "",
       day,
+      weekNumber,
       note: "",
     },
   });

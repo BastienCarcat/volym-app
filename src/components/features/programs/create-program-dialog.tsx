@@ -17,16 +17,31 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SelectInput } from "@/components/ui/select-input";
 
 import { createProgramSchema } from "@/lib/schemas/programs";
 import { createProgram } from "@/app/(root)/programs/_actions/create-program.action";
 import { useRefreshPrograms } from "@/app/(root)/programs/_hooks/use-programs";
 import { FieldWrapper } from "@/components/ui/form";
+import { ProgramType } from "@/generated/prisma";
 
 interface CreateProgramDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
+
+const PROGRAM_TYPE_OPTIONS = [
+  {
+    value: ProgramType.Days,
+    label: "Days",
+    description: "Fixed weekly schedule (Monday to Sunday)",
+  },
+  {
+    value: ProgramType.Cycle,
+    label: "Cycle",
+    description: "Rotating training cycle (Day 1, Day 2, Day 3...)",
+  },
+];
 
 export function CreateProgramDialog({
   open,
@@ -43,6 +58,7 @@ export function CreateProgramDialog({
     formProps: {
       defaultValues: {
         name: "",
+        type: ProgramType.Days,
       },
     },
     actionProps: {
@@ -81,6 +97,22 @@ export function CreateProgramDialog({
               <Input
                 {...props.field}
                 placeholder="e.g., Upper/Lower"
+                disabled={isExecuting}
+                aria-invalid={props.fieldState.invalid}
+              />
+            )}
+          </FieldWrapper>
+          <FieldWrapper
+            name="type"
+            control={form.control}
+            label="Program Type"
+            required
+            description="Choose how your training schedule is structured"
+          >
+            {(props) => (
+              <SelectInput
+                {...props.field}
+                options={PROGRAM_TYPE_OPTIONS}
                 disabled={isExecuting}
                 aria-invalid={props.fieldState.invalid}
               />

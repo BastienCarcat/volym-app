@@ -7,10 +7,12 @@ const SOFT_DELETE_MODELS = [
   "program",
   "session",
   "workoutTemplate",
-  "templateExercise",
-  "templateSet",
-  "sessionExercise",
-  "sessionSet",
+  "sessionItem",
+  "templateItem",
+  "circuitItem",
+  "exercise",
+  "set",
+  "circuit",
 ] as const;
 
 type SoftDeleteModel = (typeof SOFT_DELETE_MODELS)[number];

@@ -9,18 +9,23 @@ export const createProgram = authActionClient
   .inputSchema(createProgramSchema)
   .action(
     async ({
-      parsedInput: { name },
+      parsedInput: { name, type },
       ctx: { user },
     }): Promise<{
       id: string;
       name: string;
       note: string | null;
-      createdBy: string;
     }> => {
       const program = await prisma.program.create({
         data: {
           name,
+          type,
           createdBy: user.dbUser.id,
+        },
+        select: {
+          id: true,
+          name: true,
+          note: true,
         },
       });
 

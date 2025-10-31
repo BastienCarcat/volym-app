@@ -18,11 +18,22 @@ export const GET = userRoute
       throw new SafeRouteError("Program not found", 404);
     }
 
-    // Collect all exercise IDs
+    // Collect all exercise IDs from sessions
     const exerciseIds: string[] = [];
     program.sessions.forEach((session) => {
-      session.exercises.forEach((exercise) => {
-        exerciseIds.push(exercise.exerciseId);
+      session.sessionItems.forEach((item) => {
+        // Collect exerciseId from direct exercise
+        if (item.exercise?.exerciseId) {
+          exerciseIds.push(item.exercise.exerciseId);
+        }
+        // Collect exerciseIds from circuit items
+        if (item.circuit?.circuitItems) {
+          item.circuit.circuitItems.forEach((circuitItem) => {
+            if (circuitItem.exercise?.exerciseId) {
+              exerciseIds.push(circuitItem.exercise.exerciseId);
+            }
+          });
+        }
       });
     });
 

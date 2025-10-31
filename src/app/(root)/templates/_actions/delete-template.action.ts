@@ -14,7 +14,30 @@ export const deleteTemplate = authActionClient
   .action(async ({ parsedInput: input, ctx }) => {
     const template = await prisma.workoutTemplate.findUnique({
       where: { id: input.templateId },
-      include: { exercises: true },
+      include: {
+        templateItems: {
+          include: {
+            exercise: {
+              include: {
+                sets: true,
+              },
+            },
+            circuit: {
+              include: {
+                circuitItems: {
+                  include: {
+                    exercise: {
+                      include: {
+                        sets: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!template) {
@@ -28,18 +51,60 @@ export const deleteTemplate = authActionClient
     }
 
     return prisma.$transaction(async (tx) => {
-      const exerciseIds = template.exercises.map((ex) => ex.id);
+      // Collect all exercise IDs and circuit IDs
+      const exerciseIds: string[] = [];
+      const circuitIds: string[] = [];
+      const circuitItemIds: string[] = [];
 
+      for (const item of template.templateItems) {
+        if (item.exercise) {
+          exerciseIds.push(item.exercise.id);
+        }
+        if (item.circuit) {
+          circuitIds.push(item.circuit.id);
+          for (const circuitItem of item.circuit.circuitItems) {
+            circuitItemIds.push(circuitItem.id);
+            if (circuitItem.exercise) {
+              exerciseIds.push(circuitItem.exercise.id);
+            }
+          }
+        }
+      }
+
+      // Soft delete all sets from exercises
       if (exerciseIds.length > 0) {
-        await tx.templateSet.deleteMany({
-          where: { templateExerciseId: { in: exerciseIds } },
+        await tx.set.deleteMany({
+          where: { exerciseId: { in: exerciseIds } },
         });
       }
 
-      await tx.templateExercise.deleteMany({
+      // Soft delete circuit items
+      if (circuitItemIds.length > 0) {
+        await tx.circuitItem.deleteMany({
+          where: { id: { in: circuitItemIds } },
+        });
+      }
+
+      // Soft delete all exercises
+      if (exerciseIds.length > 0) {
+        await tx.exercise.deleteMany({
+          where: { id: { in: exerciseIds } },
+        });
+      }
+
+      // Soft delete all circuits
+      if (circuitIds.length > 0) {
+        await tx.circuit.deleteMany({
+          where: { id: { in: circuitIds } },
+        });
+      }
+
+      // Soft delete all template items
+      await tx.templateItem.deleteMany({
         where: { templateId: input.templateId },
       });
 
+      // Soft delete the template
       await tx.workoutTemplate.delete({
         where: { id: input.templateId },
       });

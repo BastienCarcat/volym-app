@@ -11,23 +11,66 @@ export const getWorkoutById = async (workoutId: string, userId: string) => {
       id: true,
       name: true,
       note: true,
-      exercises: {
+      isPublic: true,
+      templateItems: {
         orderBy: { order: "asc" },
         select: {
           id: true,
-          note: true,
+          type: true,
           order: true,
-          exerciseId: true,
-          sets: {
-            orderBy: { order: "asc" },
+          exercise: {
             select: {
               id: true,
-              weight: true,
-              reps: true,
-              rest: true,
+              exerciseId: true,
+              note: true,
+              sets: {
+                orderBy: { order: "asc" },
+                select: {
+                  id: true,
+                  weight: true,
+                  reps: true,
+                  rest: true,
+                  type: true,
+                  rpe: true,
+                  order: true,
+                },
+              },
+            },
+          },
+          circuit: {
+            select: {
+              id: true,
               type: true,
-              rpe: true,
-              order: true,
+              duration: true,
+              rest: true,
+              note: true,
+              circuitItems: {
+                orderBy: { order: "asc" },
+                select: {
+                  id: true,
+                  type: true,
+                  order: true,
+                  exercise: {
+                    select: {
+                      id: true,
+                      exerciseId: true,
+                      note: true,
+                      sets: {
+                        orderBy: { order: "asc" },
+                        select: {
+                          id: true,
+                          weight: true,
+                          reps: true,
+                          rest: true,
+                          type: true,
+                          rpe: true,
+                          order: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
             },
           },
         },

@@ -9,6 +9,7 @@ export const getPrograms = async (userId: string) => {
       id: true,
       name: true,
       note: true,
+      type: true,
       createdAt: true,
       updatedAt: true,
     },

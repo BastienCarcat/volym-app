@@ -23,12 +23,14 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function MuscleDistribution({ program }: MuscleDistributionProps) {
-  const { activeSessionId, activeSessionFormValues } = useProgramContext();
+  const { activeSessionId, activeSessionFormValues, currentWeek } =
+    useProgramContext();
 
   const chartData = useMuscleDistribution({
     program,
     activeSessionId,
     activeSessionFormValues,
+    currentWeek,
   });
   return (
     <div className="space-y-3 border-t pt-3">

@@ -2,7 +2,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import type { ProgramWithFullSessionsAndExercises } from "@/app/(root)/programs/_hooks/use-programs";
 import type { GymFitExercise } from "../gymfit/types";
-import { SetType } from "@/generated/prisma";
+import { SetType, SessionItemType, CircuitType } from "@/generated/prisma";
 
 interface GenerateProgramPDFOptions {
   program: ProgramWithFullSessionsAndExercises;
@@ -45,6 +45,23 @@ const formatDay = (day: string): string => {
   return days[day] || day;
 };
 
+const formatCircuitType = (type: CircuitType): string => {
+  switch (type) {
+    case CircuitType.Superset:
+      return "Superset";
+    case CircuitType.Biset:
+      return "Biset";
+    case CircuitType.Triset:
+      return "Triset";
+    case CircuitType.GiantSet:
+      return "Giant Set";
+    case CircuitType.AMRAP:
+      return "AMRAP";
+    default:
+      return type;
+  }
+};
+
 export const generateProgramPDF = ({
   program,
   exercises,
@@ -82,12 +99,18 @@ export const generateProgramPDF = ({
   });
   currentY += 15;
 
-  // Sort sessions by week and day
+  // Sort sessions by week and day/cycleDay
   const sortedSessions = [...program.sessions].sort((a, b) => {
     const weekA = a.weekNumber || 0;
     const weekB = b.weekNumber || 0;
     if (weekA !== weekB) return weekA - weekB;
 
+    // For cycle type, sort by cycleDay
+    if (program.type === "Cycle") {
+      return (a.cycleDay || 0) - (b.cycleDay || 0);
+    }
+
+    // For days type, sort by day of week
     const dayOrder = [
       "Monday",
       "Tuesday",
@@ -97,7 +120,9 @@ export const generateProgramPDF = ({
       "Saturday",
       "Sunday",
     ];
-    return dayOrder.indexOf(a.day) - dayOrder.indexOf(b.day);
+    const dayA = a.day || "";
+    const dayB = b.day || "";
+    return dayOrder.indexOf(dayA) - dayOrder.indexOf(dayB);
   });
 
   // Group sessions by week
@@ -135,7 +160,13 @@ export const generateProgramPDF = ({
       doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(0, 0, 0);
-      const sessionTitle = `${session.name} - ${formatDay(session.day)}`;
+      const dayLabel =
+        program.type === "Cycle"
+          ? `Day ${session.cycleDay}`
+          : formatDay(session.day || "");
+      const sessionTitle = session.isRestDay
+        ? `${session.name} - ${dayLabel} (Rest Day)`
+        : `${session.name} - ${dayLabel}`;
       doc.text(sessionTitle, 20, currentY);
       currentY += 2;
 
@@ -152,29 +183,101 @@ export const generateProgramPDF = ({
 
       currentY += 5;
 
-      // Exercises table
-      if (session.exercises.length > 0) {
+      // Rest day indicator
+      if (session.isRestDay) {
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "italic");
+        doc.setTextColor(150, 150, 150);
+        doc.text("Scheduled rest day", 20, currentY);
+        currentY += 10;
+        return;
+      }
+
+      // Session items table (exercises and circuits)
+      if (session.sessionItems.length > 0) {
         const tableData: string[][] = [];
 
-        session.exercises.forEach((exercise) => {
-          const exerciseData = exercises[exercise.exerciseId];
-          const exerciseName = exerciseData?.name || "Unknown exercise";
+        session.sessionItems.forEach((item) => {
+          if (item.type === SessionItemType.Exercise && item.exercise) {
+            // Direct exercise
+            const exerciseData = exercises[item.exercise.exerciseId];
+            const exerciseName = exerciseData?.name || "Unknown exercise";
 
-          exercise.sets.forEach((set, setIndex) => {
-            const isFirstSet = setIndex === 0;
-            tableData.push([
-              isFirstSet ? exerciseName : "",
-              `${set.reps}`,
-              set.weight ? `${set.weight} kg` : "-",
-              formatRest(set.rest),
-              formatSetType(set.type),
-              set.rpe ? `RPE ${set.rpe}` : "-",
-            ]);
-          });
+            item.exercise.sets.forEach((set: any, setIndex: number) => {
+              const isFirstSet = setIndex === 0;
+              tableData.push([
+                isFirstSet ? exerciseName : "",
+                `${set.reps}`,
+                set.weight ? `${set.weight} kg` : "-",
+                formatRest(set.rest),
+                formatSetType(set.type),
+                set.rpe ? `RPE ${set.rpe}` : "-",
+              ]);
+            });
 
-          // Exercise note
-          if (exercise.note) {
-            tableData.push([`Note: ${exercise.note}`, "", "", "", "", ""]);
+            // Exercise note
+            if (item.exercise.note) {
+              tableData.push([
+                `Note: ${item.exercise.note}`,
+                "",
+                "",
+                "",
+                "",
+                "",
+              ]);
+            }
+          } else if (item.type === SessionItemType.Circuit && item.circuit) {
+            // Circuit header
+            const circuitHeader = `${formatCircuitType(item.circuit.type)}${
+              item.circuit.duration ? ` (${item.circuit.duration}s)` : ""
+            }${item.circuit.rest ? ` - Rest: ${formatRest(item.circuit.rest)}` : ""}`;
+            tableData.push([circuitHeader, "", "", "", "", ""]);
+
+            // Circuit note
+            if (item.circuit.note) {
+              tableData.push([
+                `Note: ${item.circuit.note}`,
+                "",
+                "",
+                "",
+                "",
+                "",
+              ]);
+            }
+
+            // Circuit exercises
+            item.circuit.circuitItems?.forEach((circuitItem: any) => {
+              if (circuitItem.exercise) {
+                const exerciseData =
+                  exercises[circuitItem.exercise.exerciseId];
+                const exerciseName =
+                  exerciseData?.name || "Unknown exercise";
+
+                circuitItem.exercise.sets.forEach((set: any, setIndex: number) => {
+                  const isFirstSet = setIndex === 0;
+                  tableData.push([
+                    isFirstSet ? `  ${exerciseName}` : "",
+                    `${set.reps}`,
+                    set.weight ? `${set.weight} kg` : "-",
+                    formatRest(set.rest),
+                    formatSetType(set.type),
+                    set.rpe ? `RPE ${set.rpe}` : "-",
+                  ]);
+                });
+
+                // Exercise note in circuit
+                if (circuitItem.exercise.note) {
+                  tableData.push([
+                    `  Note: ${circuitItem.exercise.note}`,
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                  ]);
+                }
+              }
+            });
           }
         });
 
@@ -201,14 +304,33 @@ export const generateProgramPDF = ({
             5: { cellWidth: 20, halign: "center" },
           },
           didParseCell: (data) => {
+            const cellText = data.cell.text[0] || "";
+
             // Style note rows
             if (
               data.section === "body" &&
               data.column.index === 0 &&
-              data.cell.text[0]?.startsWith("Note:")
+              cellText.includes("Note:")
             ) {
               data.cell.styles.fontStyle = "italic";
               data.cell.styles.textColor = [100, 100, 100];
+            }
+
+            // Style circuit headers (doesn't start with space or Note)
+            if (
+              data.section === "body" &&
+              data.column.index === 0 &&
+              !cellText.startsWith("  ") &&
+              !cellText.includes("Note:") &&
+              (cellText.includes("Superset") ||
+                cellText.includes("Biset") ||
+                cellText.includes("Triset") ||
+                cellText.includes("Giant Set") ||
+                cellText.includes("AMRAP"))
+            ) {
+              data.cell.styles.fontStyle = "bold";
+              data.cell.styles.textColor = [41, 128, 185];
+              data.cell.styles.fillColor = [240, 248, 255];
             }
           },
         });
@@ -219,7 +341,7 @@ export const generateProgramPDF = ({
         doc.setFontSize(9);
         doc.setFont("helvetica", "italic");
         doc.setTextColor(150, 150, 150);
-        doc.text("No exercises in this session", 20, currentY);
+        doc.text("No items in this session", 20, currentY);
         currentY += 10;
       }
     });

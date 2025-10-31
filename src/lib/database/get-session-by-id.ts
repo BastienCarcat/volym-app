@@ -10,26 +10,70 @@ export const getSessionById = async (sessionId: string) => {
       name: true,
       note: true,
       day: true,
+      cycleDay: true,
+      isRestDay: true,
       weekNumber: true,
       programId: true,
       templateId: true,
-      exercises: {
+      sessionItems: {
         orderBy: { order: "asc" },
         select: {
           id: true,
-          note: true,
+          type: true,
           order: true,
-          exerciseId: true,
-          supersetId: true,
-          sets: {
-            orderBy: { order: "asc" },
+          exercise: {
             select: {
               id: true,
-              weight: true,
-              reps: true,
-              rest: true,
+              exerciseId: true,
+              note: true,
+              sets: {
+                orderBy: { order: "asc" },
+                select: {
+                  id: true,
+                  weight: true,
+                  reps: true,
+                  rest: true,
+                  type: true,
+                  rpe: true,
+                  order: true,
+                },
+              },
+            },
+          },
+          circuit: {
+            select: {
+              id: true,
               type: true,
-              rpe: true,
+              duration: true,
+              rest: true,
+              note: true,
+              circuitItems: {
+                orderBy: { order: "asc" },
+                select: {
+                  id: true,
+                  type: true,
+                  order: true,
+                  exercise: {
+                    select: {
+                      id: true,
+                      exerciseId: true,
+                      note: true,
+                      sets: {
+                        orderBy: { order: "asc" },
+                        select: {
+                          id: true,
+                          weight: true,
+                          reps: true,
+                          rest: true,
+                          type: true,
+                          rpe: true,
+                          order: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
             },
           },
         },

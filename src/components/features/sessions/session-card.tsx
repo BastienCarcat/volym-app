@@ -1,26 +1,19 @@
 "use client";
 
 import * as React from "react";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 import { Save, BookmarkPlus, Clock } from "lucide-react";
 import {
   useUpdateSessionCache,
-  type SessionWithExercises,
+  type SessionWithItems,
 } from "@/hooks/use-sessions";
-import { sessionWithExercisesSchema } from "@/lib/schemas/sessions";
+import { sessionWithItemsFormSchema } from "@/lib/schemas/sessions.form.schema";
 import { useAction } from "next-safe-action/hooks";
-import { saveSession } from "@/app/(root)/programs/_actions/save-session.action";
 import { saveSessionAsTemplate } from "@/app/(root)/programs/_actions/save-session-as-template.action";
 import z from "zod";
-import SessionExercisesList from "./session-exercises-list";
+import SessionItemsList from "./session-items-list";
 import { toast } from "sonner";
 import { useUpdateProgramCache } from "@/app/(root)/programs/_hooks/use-programs";
 import { useWarnIfUnsavedChanges } from "@/hooks/use-warn-if-unsaved-changes";
@@ -39,13 +32,14 @@ import {
   calculateSessionDuration,
   formatSessionDuration,
 } from "@/lib/sessions/calculate-duration";
+import { saveSession } from "@/app/(root)/programs/_actions/save-session.action";
 
 interface SessionCardProps {
-  session: SessionWithExercises;
+  session: SessionWithItems;
   programId: string;
 }
 
-export type SessionFormValues = z.infer<typeof sessionWithExercisesSchema>;
+export type SessionFormValues = z.infer<typeof sessionWithItemsFormSchema>;
 
 export function SessionCard({ session, programId }: SessionCardProps) {
   const { setActiveSession, resetActiveSession } = useProgramContext();
@@ -55,7 +49,7 @@ export function SessionCard({ session, programId }: SessionCardProps) {
   const { addTemplate } = useUpdateTemplatesCache();
 
   const form = useZodForm({
-    schema: sessionWithExercisesSchema,
+    schema: sessionWithItemsFormSchema,
     reValidateMode: "onChange",
     defaultValues: session,
   });
@@ -66,7 +60,7 @@ export function SessionCard({ session, programId }: SessionCardProps) {
 
   React.useEffect(() => {
     const subscription = form.watch((values) => {
-      setActiveSession(session.id, values as SessionWithExercises);
+      setActiveSession(session.id, values as SessionWithItems);
     });
     return () => subscription.unsubscribe();
   }, [form, session.id, setActiveSession]);
@@ -82,6 +76,7 @@ export function SessionCard({ session, programId }: SessionCardProps) {
         updateSessionCache(session.id, data);
         updateFullSession(programId, session.id, data);
         form.reset(data); // TODO: this re-render all the Form so accordions are closed after submit
+        toast.success("Session saved successfully");
       }
     },
     onError: () => {
@@ -99,8 +94,14 @@ export function SessionCard({ session, programId }: SessionCardProps) {
             name: data.name,
             note: data.note,
             isPublic: data.isPublic,
-            createdAt: data.createdAt.toISOString(),
-            updatedAt: data.updatedAt.toISOString(),
+            createdAt:
+              data.createdAt instanceof Date
+                ? data.createdAt.toISOString()
+                : data.createdAt,
+            updatedAt:
+              data.updatedAt instanceof Date
+                ? data.updatedAt.toISOString()
+                : data.updatedAt,
           });
           toast.success(`Template "${data.name}" created successfully`);
         }
@@ -111,33 +112,36 @@ export function SessionCard({ session, programId }: SessionCardProps) {
     }
   );
 
-  const handleSubmit = (data: SessionWithExercises) => {
-    execute(data);
-  };
+  const sessionItems = useWatch({
+    control: form.control,
+    name: "sessionItems",
+  });
+
+  const estimatedDuration = React.useMemo(() => {
+    const currentSession = {
+      ...session,
+      sessionItems: sessionItems || [],
+    } as SessionWithItems;
+    return calculateSessionDuration(currentSession);
+  }, [sessionItems, session]);
 
   const handleSaveAsTemplate = () => {
-    saveAsTemplate({ sessionId: session.id });
+    // TODO: Make a dialog
+    const templateName = window.prompt(
+      "Enter a name for the template:",
+      session.name
+    );
+    if (templateName) {
+      saveAsTemplate({ sessionId: session.id, templateName });
+    }
   };
 
   const canSave = form.formState.isDirty && !isPending;
 
-  const exercises = useWatch({
-    control: form.control,
-    name: "exercises",
-  });
-
-  const estimatedDuration = React.useMemo(() => {
-    const currentSession: SessionWithExercises = {
-      ...session,
-      exercises: exercises || [],
-    };
-    return calculateSessionDuration(currentSession);
-  }, [exercises, session]);
-
   return (
     <Form
       form={form}
-      onSubmit={handleSubmit}
+      onSubmit={execute}
       disabled={isPending}
       className="flex h-full min-h-0 flex-col"
     >
@@ -191,7 +195,7 @@ export function SessionCard({ session, programId }: SessionCardProps) {
           </div>
         </CardHeader>
         <CardContent className="min-h-0 flex-1 overflow-hidden">
-          <SessionExercisesList />
+          <SessionItemsList />
         </CardContent>
 
         <Button

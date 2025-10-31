@@ -18,9 +18,14 @@ import { CreateSessionDialog } from "./create-session-dialog";
 interface SessionEmptyCardProps {
   day: DayOfWeek;
   programId: string;
+  weekNumber: number;
 }
 
-export function SessionEmptyCard({ day, programId }: SessionEmptyCardProps) {
+export function SessionEmptyCard({
+  day,
+  programId,
+  weekNumber,
+}: SessionEmptyCardProps) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
 
   return (
@@ -49,6 +54,7 @@ export function SessionEmptyCard({ day, programId }: SessionEmptyCardProps) {
       <CreateSessionDialog
         programId={programId}
         day={day}
+        weekNumber={weekNumber}
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
       />

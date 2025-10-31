@@ -139,9 +139,33 @@ pnpm run format      # Format with Prettier
 
 ### Database Schema
 
-**Models**: User → Program → Session → SessionExercise → SessionSet
-**Templates**: WorkoutTemplate → TemplateExercise → TemplateSet
-**Enums**: UserType (Coach/Athlete), Gender, SetType (WarmUp/Normal/DropsSet/Failure), DayOfWeek
+**Core Hierarchy**:
+- User → Program → Session → SessionItem (polymorphic) → Exercise/Circuit
+- User → WorkoutTemplate → TemplateItem (polymorphic) → Exercise/Circuit
+- Circuit → CircuitItem → Exercise
+- Exercise → Set
+
+**Enums**:
+- UserType: Coach, Athlete
+- Gender: Male, Female
+- SetType: WarmUp, Normal, DropsSet, Failure
+- DayOfWeek: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday
+- ProgramType: Days, Cycle
+- CircuitType: Superset, Biset, Triset, GiantSet, AMRAP
+- SessionItemType: Exercise, Circuit
+- CircuitItemType: Exercise
+
+**Key Models**:
+- **User**: Athletes and coaches
+- **Program**: Training programs with type (Days/Cycle)
+- **Session**: Program sessions with optional rest days (day/cycleDay)
+- **WorkoutTemplate**: Reusable workout templates (library)
+- **SessionItem**: Polymorphic (Exercise or Circuit) in sessions
+- **TemplateItem**: Polymorphic (Exercise or Circuit) in templates
+- **Circuit**: Intensity techniques (supersets, AMRAP, etc.)
+- **CircuitItem**: Exercises within circuits
+- **Exercise**: Unified exercise model (GymFit ID + sets + note)
+- **Set**: Exercise sets with weight, reps, rest, RPE, type
 
 ---
 
