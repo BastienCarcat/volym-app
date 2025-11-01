@@ -4,7 +4,6 @@ import { authActionClient } from "@/lib/nextSafeAction/client";
 import prisma from "@/lib/prisma/prisma";
 import { SessionItemType, CircuitItemType } from "@/generated/prisma";
 import { getSessionById } from "@/lib/database/get-session-by-id";
-import { getTemplateById } from "@/lib/database/get-template-by-id";
 import { z } from "zod";
 
 const saveSessionAsTemplateSchema = z.object({
@@ -127,7 +126,7 @@ export const saveSessionAsTemplate = authActionClient
         }
       }
 
-      // 3. Return the created template
-      return getTemplateById(template.id);
+      // 3. Return the created template id
+      return template.id;
     });
   });

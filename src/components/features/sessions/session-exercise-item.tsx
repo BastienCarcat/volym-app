@@ -5,6 +5,7 @@ import {
   Dumbbell,
   MoreHorizontal,
   Trash2,
+  Zap,
 } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,7 @@ interface SessionExerciseItemProps {
   exerciseIndex: number;
   exerciseId: string;
   onRemove: () => void;
+  onConvertToCircuit?: () => void;
   inCircuit?: boolean;
   circuitItemIndex?: number;
 }
@@ -48,6 +50,7 @@ export function SessionExerciseItem({
   exerciseIndex,
   exerciseId,
   onRemove,
+  onConvertToCircuit,
   inCircuit = false,
   circuitItemIndex,
 }: SessionExerciseItemProps) {
@@ -191,6 +194,12 @@ export function SessionExerciseItem({
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          {!inCircuit && onConvertToCircuit && (
+                            <DropdownMenuItem onClick={onConvertToCircuit}>
+                              <Zap className="mr-2 h-4 w-4" />
+                              Convert to circuit
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuItem
                             onClick={onRemove}
                             className="focus:text-red-600"

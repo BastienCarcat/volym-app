@@ -37,6 +37,7 @@ export const useRefreshTemplates = () => {
 export const useUpdateTemplatesCache = () => {
   const queryClient = useQueryClient();
 
+  // TODO: remove this and use refresh
   const addTemplate = (newTemplate: Template) => {
     queryClient.setQueryData<Template[]>(["templates"], (oldData) => {
       if (!oldData) return oldData;

@@ -6,7 +6,6 @@ import {
   BodyPart,
   type SearchExercisesFilters as SearchExercisesFiltersValues,
 } from "@/lib/gymfit/types";
-import z from "zod";
 import { SearchExercisesFiltersSchema } from "@/lib/schemas/gymfit";
 import { FieldWrapper, useZodForm } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";

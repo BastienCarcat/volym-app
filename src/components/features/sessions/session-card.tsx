@@ -11,7 +11,6 @@ import {
 } from "@/hooks/use-sessions";
 import { sessionWithItemsFormSchema } from "@/lib/schemas/sessions.form.schema";
 import { useAction } from "next-safe-action/hooks";
-import { saveSessionAsTemplate } from "@/app/(root)/programs/_actions/save-session-as-template.action";
 import z from "zod";
 import SessionItemsList from "./session-items-list";
 import { toast } from "sonner";
@@ -23,7 +22,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useUpdateTemplatesCache } from "@/app/(root)/templates/_hooks/use-templates";
 import { useProgramContext } from "@/app/(root)/programs/[id]/_providers/program-provider";
 import { useWatch } from "react-hook-form";
 import { FieldWrapper, Form, useZodForm } from "@/components/ui/form";
@@ -33,6 +31,7 @@ import {
   formatSessionDuration,
 } from "@/lib/sessions/calculate-duration";
 import { saveSession } from "@/app/(root)/programs/_actions/save-session.action";
+import { SaveAsTemplateDialog } from "./save-as-template-dialog";
 
 interface SessionCardProps {
   session: SessionWithItems;
@@ -46,7 +45,6 @@ export function SessionCard({ session, programId }: SessionCardProps) {
 
   const updateSessionCache = useUpdateSessionCache();
   const { updateFullSession } = useUpdateProgramCache();
-  const { addTemplate } = useUpdateTemplatesCache();
 
   const form = useZodForm({
     schema: sessionWithItemsFormSchema,
@@ -84,34 +82,6 @@ export function SessionCard({ session, programId }: SessionCardProps) {
     },
   });
 
-  const { execute: saveAsTemplate, isPending: isSavingAsTemplate } = useAction(
-    saveSessionAsTemplate,
-    {
-      onSuccess: ({ data }) => {
-        if (data) {
-          addTemplate({
-            id: data.id,
-            name: data.name,
-            note: data.note,
-            isPublic: data.isPublic,
-            createdAt:
-              data.createdAt instanceof Date
-                ? data.createdAt.toISOString()
-                : data.createdAt,
-            updatedAt:
-              data.updatedAt instanceof Date
-                ? data.updatedAt.toISOString()
-                : data.updatedAt,
-          });
-          toast.success(`Template "${data.name}" created successfully`);
-        }
-      },
-      onError: () => {
-        toast.error("An error occurred while saving the template");
-      },
-    }
-  );
-
   const sessionItems = useWatch({
     control: form.control,
     name: "sessionItems",
@@ -125,23 +95,17 @@ export function SessionCard({ session, programId }: SessionCardProps) {
     return calculateSessionDuration(currentSession);
   }, [sessionItems, session]);
 
-  const handleSaveAsTemplate = () => {
-    // TODO: Make a dialog
-    const templateName = window.prompt(
-      "Enter a name for the template:",
-      session.name
-    );
-    if (templateName) {
-      saveAsTemplate({ sessionId: session.id, templateName });
-    }
-  };
+  const [isTemplateDialogOpen, setIsTemplateDialogOpen] = React.useState(false);
 
   const canSave = form.formState.isDirty && !isPending;
+
+  const handleSubmit = () => {
+    form.handleSubmit((values) => execute(values))();
+  };
 
   return (
     <Form
       form={form}
-      onSubmit={execute}
       disabled={isPending}
       className="flex h-full min-h-0 flex-col"
     >
@@ -176,15 +140,10 @@ export function SessionCard({ session, programId }: SessionCardProps) {
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={handleSaveAsTemplate}
-                    disabled={isSavingAsTemplate}
+                    onClick={() => setIsTemplateDialogOpen(true)}
                     className="flex-shrink-0"
                   >
-                    {isSavingAsTemplate ? (
-                      <Spinner />
-                    ) : (
-                      <BookmarkPlus className="h-4 w-4" />
-                    )}
+                    <BookmarkPlus className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -201,12 +160,20 @@ export function SessionCard({ session, programId }: SessionCardProps) {
         <Button
           disabled={!canSave}
           className="absolute right-0 bottom-0 -translate-4 transform shadow-lg"
-          type="submit"
+          type="button"
+          onClick={handleSubmit}
         >
           <Save className="mr-2 h-4 w-4" />
           {isPending ? "Saving..." : "Save session"}
         </Button>
       </Card>
+
+      <SaveAsTemplateDialog
+        open={isTemplateDialogOpen}
+        onOpenChange={(o) => setIsTemplateDialogOpen(o)}
+        sessionId={session.id}
+        defaultName={session.name}
+      />
     </Form>
   );
 }

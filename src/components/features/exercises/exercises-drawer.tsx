@@ -10,10 +10,8 @@ import {
 } from "@/components/ui/sheet";
 
 import { Spinner } from "@/components/ui/spinner";
-import {
-  SearchExercisesFilters,
-  type SearchExercisesFiltersValues,
-} from "./exercise-filters";
+import { SearchExercisesFilters } from "./exercise-filters";
+import type { SearchExercisesFilters as SearchExercisesFiltersValues } from "@/lib/gymfit/types";
 import { useAllExercises, useExerciseCache } from "@/hooks/use-exercise";
 import { SearchExerciseListItem } from "./exercise-item";
 

@@ -45,7 +45,7 @@ export type FormProps<T extends FieldValues> = Omit<
   "onSubmit"
 > & {
   form: UseFormReturn<T>;
-  onSubmit: SubmitHandler<T>;
+  onSubmit?: SubmitHandler<T>;
   disabled?: boolean;
 };
 
@@ -60,7 +60,7 @@ export const Form = <T extends FieldValues>({
   return (
     <FormProvider {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={onSubmit ? form.handleSubmit(onSubmit) : undefined}
         className={className}
         {...props}
       >
