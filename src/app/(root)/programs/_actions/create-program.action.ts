@@ -9,7 +9,7 @@ export const createProgram = authActionClient
   .inputSchema(createProgramSchema)
   .action(
     async ({
-      parsedInput: { name, type },
+      parsedInput: { name, type, objective },
       ctx: { user },
     }): Promise<{
       id: string;
@@ -20,6 +20,7 @@ export const createProgram = authActionClient
         data: {
           name,
           type,
+          objective,
           createdBy: user.dbUser.id,
         },
         select: {

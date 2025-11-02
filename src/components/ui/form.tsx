@@ -21,6 +21,7 @@ import {
   FieldDescription,
   FieldError,
 } from "@/components/ui/field";
+import { cn } from "@/lib/utils";
 
 /**
  * Form component with automatic FormProvider wrapping and submit handling
@@ -150,7 +151,10 @@ export function FieldWrapper({
       name={name}
       control={control}
       render={({ field, fieldState, formState }) => (
-        <Field className={className} data-invalid={fieldState.invalid}>
+        <Field
+          className={cn("gap-2", className)}
+          data-invalid={fieldState.invalid}
+        >
           {label && (
             <FieldLabel htmlFor={field.name}>
               {label}
@@ -160,7 +164,11 @@ export function FieldWrapper({
 
           {children({ field, fieldState, formState })}
 
-          {description && <FieldDescription>{description}</FieldDescription>}
+          {description && (
+            <FieldDescription className="text-xs">
+              {description}
+            </FieldDescription>
+          )}
 
           {fieldState.invalid && fieldState.error && (
             <FieldError errors={[fieldState.error]} />

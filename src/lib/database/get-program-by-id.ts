@@ -11,6 +11,7 @@ export const getProgramById = async (programId: string) => {
       name: true,
       note: true,
       type: true,
+      objective: true,
     },
   });
 };
@@ -25,6 +26,7 @@ export const getProgramWithSessions = async (programId: string) => {
       name: true,
       note: true,
       type: true,
+      objective: true,
       sessions: {
         select: {
           id: true,
@@ -49,6 +51,7 @@ const programWithFullSessionsArgs = {
     name: true,
     note: true,
     type: true,
+    objective: true,
     sessions: {
       select: {
         id: true,

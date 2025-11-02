@@ -26,7 +26,7 @@ export async function AppSidebar({
       </SidebarHeader>
       <SidebarSeparator />
       <SidebarContent>
-        <NavGroupPrograms />
+        <NavGroupPrograms userLevel={user.dbUser.level} />
         <SidebarSeparator />
         <NavGroupSettings />
       </SidebarContent>

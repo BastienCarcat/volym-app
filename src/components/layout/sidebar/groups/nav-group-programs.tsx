@@ -14,8 +14,13 @@ import Link from "next/link";
 
 import { usePrograms } from "@/app/(root)/programs/_hooks/use-programs";
 import { CreateProgramDialog } from "@/components/features/programs/create-program-dialog";
+import { UserLevel } from "@/generated/prisma";
 
-export function NavGroupPrograms() {
+interface NavGroupProgramsProps {
+  userLevel: UserLevel | null;
+}
+
+export function NavGroupPrograms({ userLevel }: NavGroupProgramsProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { data, isLoading } = usePrograms();
 
@@ -55,6 +60,7 @@ export function NavGroupPrograms() {
       <CreateProgramDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
+        userLevel={userLevel}
       />
     </>
   );
