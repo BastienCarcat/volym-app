@@ -50,6 +50,11 @@ export function SearchExercisesFilters({
 }: SearchExercisesFiltersProps) {
   const { control, watch } = useZodForm({
     schema: SearchExercisesFiltersSchema,
+    defaultValues: {
+      query: "",
+      bodyPart: undefined,
+      equipment: undefined,
+    },
   });
 
   // Watch all form values and call onFiltersChange whenever they change
