@@ -141,17 +141,21 @@ export function WeekTabs({ program }: WeekTabsProps) {
             })}
           </TabsList>
 
-          {DAYS_OF_WEEK.map((day) => {
-            const session = sessionsMapByDay.get(day);
+          <div className="mt-4 grid min-h-0 flex-1 grid-cols-1 gap-6 lg:grid-cols-3">
+            <div className="overflow-auto lg:col-span-1">
+              <ProgramInsights program={program} />
+            </div>
 
-            return (
-              <TabsContent key={day} value={day} className="mt-6 min-h-0">
-                <div className="grid h-full grid-cols-1 gap-6 lg:grid-cols-3">
-                  <div className="lg:col-span-1">
-                    <ProgramInsights program={program} />
-                  </div>
+            {DAYS_OF_WEEK.map((day) => {
+              const session = sessionsMapByDay.get(day);
 
-                  <div className="min-h-0 lg:col-span-2">
+              return (
+                <TabsContent
+                  key={day}
+                  value={day}
+                  className="h-full min-h-0 lg:col-span-2"
+                >
+                  <div className="h-full min-h-0">
                     {session ? (
                       <SessionCard session={session} programId={programId} />
                     ) : (
@@ -162,10 +166,10 @@ export function WeekTabs({ program }: WeekTabsProps) {
                       />
                     )}
                   </div>
-                </div>
-              </TabsContent>
-            );
-          })}
+                </TabsContent>
+              );
+            })}
+          </div>
         </Tabs>
       </div>
     );
@@ -236,14 +240,14 @@ export function WeekTabs({ program }: WeekTabsProps) {
           <TabsContent
             key={session.id}
             value={`cycle-${session.cycleDay}`}
-            className="mt-6 min-h-0"
+            className="mt-6 min-h-0 flex-1"
           >
-            <div className="grid h-full grid-cols-1 gap-6 lg:grid-cols-3">
+            <div className="grid h-full min-h-0 grid-cols-1 gap-6 lg:grid-cols-3">
               <div className="lg:col-span-1">
                 <ProgramInsights program={program} />
               </div>
 
-              <div className="min-h-0 lg:col-span-2">
+              <div className="h-full min-h-0 lg:col-span-2">
                 {session.isRestDay ? (
                   <RestDayCard session={session} programId={programId} />
                 ) : (
