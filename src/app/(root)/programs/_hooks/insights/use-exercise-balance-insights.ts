@@ -12,11 +12,29 @@ import { getIdealExerciseBalance } from "./types";
 import { classifyExercise } from "@/lib/gymfit/exercise-classification";
 import { z } from "zod";
 import { circuitItemDbSchema } from "@/lib/schemas/sessions.schema";
+import {
+  evaluateCriteria,
+  createCriterionConfig,
+} from "./criteria-system";
+import {
+  evaluateCompoundIsolationRatio,
+  type ExerciseBalanceCriteriaData,
+} from "./exercise-balance-criteria";
 
 interface UseExerciseBalanceInsightsParams extends BaseInsightsParams {
   userLevel: UserLevel;
   objective: ProgramObjective;
 }
+
+/**
+ * Configure which criteria to use for exercise balance evaluation
+ */
+const EXERCISE_BALANCE_CRITERIA_CONFIG = [
+  {
+    evaluator: evaluateCompoundIsolationRatio,
+    config: createCriterionConfig("compoundIsolationRatio", 1.0), // 100% weight
+  },
+];
 
 export const useExerciseBalanceInsights = ({
   program,
@@ -92,42 +110,31 @@ export const useExerciseBalanceInsights = ({
     const isolationPercentage = (isolationCount / total) * 100;
 
     const ideal = getIdealExerciseBalance(userLevel, objective);
-    const { score, recommendation } = calculateExerciseBalanceScore(
+
+    // Prepare data for criteria evaluation
+    const criteriaData: ExerciseBalanceCriteriaData = {
       compoundPercentage,
       isolationPercentage,
-      ideal
+      totalExercises: total,
+      ideal,
+    };
+
+    // Evaluate all configured criteria
+    const evaluation = evaluateCriteria(
+      criteriaData,
+      EXERCISE_BALANCE_CRITERIA_CONFIG
     );
+
+    // Get primary recommendation
+    const primaryRecommendation = evaluation.recommendations[0];
 
     return {
       compoundPercentage,
       isolationPercentage,
       totalExercises: total,
       uniqueExercises,
-      score,
-      recommendation,
+      score: evaluation.finalScore,
+      recommendation: primaryRecommendation,
     };
   }, [program, currentWeek, userLevel, objective, queryClient]);
 };
-
-function calculateExerciseBalanceScore(
-  compoundPercentage: number,
-  isolationPercentage: number,
-  ideal: { compound: number; isolation: number }
-): { score: number; recommendation?: string } {
-  const compoundDeviation = Math.abs(compoundPercentage - ideal.compound);
-  const isolationDeviation = Math.abs(isolationPercentage - ideal.isolation);
-
-  const totalDeviation = (compoundDeviation + isolationDeviation) / 2;
-
-  const score = Math.max(0, 100 - totalDeviation * 2);
-
-  let recommendation: string | undefined;
-
-  if (compoundPercentage < ideal.compound - 10) {
-    recommendation = `Add more compound exercises. Aim for ${ideal.compound}% compound.`;
-  } else if (compoundPercentage > ideal.compound + 10) {
-    recommendation = `Add more isolation exercises to target weak points. Aim for ${ideal.isolation}% isolation.`;
-  }
-
-  return { score, recommendation };
-}

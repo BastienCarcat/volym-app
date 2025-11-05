@@ -6,8 +6,6 @@ import { z } from "zod";
 import { upfetch } from "@/lib/up-fetch";
 import { gymFitSearchExercisesResponseSchema } from "@/lib/schemas/gymfit";
 
-const GYMFIT_API_BASE_URL = "https://gym-fit.p.rapidapi.com";
-
 const searchParamsSchema = z.object({
   bodyPart: z
     .enum(["Legs", "Back", "Chest", "Shoulders", "Arms", "Core"])
@@ -32,7 +30,7 @@ export const GET = userRoute
     searchParams.append("offset", query.offset.toString());
     searchParams.append("number", query.number.toString());
 
-    const url = `${GYMFIT_API_BASE_URL}/v1/exercises/search?${searchParams.toString()}`;
+    const url = `${process.env.GYMFIT_API_BASE_URL}/v1/exercises/search?${searchParams.toString()}`;
 
     try {
       const response = await upfetch(url, {

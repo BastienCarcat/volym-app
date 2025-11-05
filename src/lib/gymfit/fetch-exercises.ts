@@ -2,8 +2,6 @@ import { upfetch } from "@/lib/up-fetch";
 import { type GymFitExercise } from "./types";
 import { gymFitExerciseSchema } from "../schemas/gymfit";
 
-const GYMFIT_API_BASE_URL = "https://gym-fit.p.rapidapi.com";
-
 export async function fetchExerciseFromGymFit(
   exerciseId: string
 ): Promise<GymFitExercise> {
@@ -12,7 +10,7 @@ export async function fetchExerciseFromGymFit(
     throw new Error("GYMFIT_API_KEY is not configured");
   }
 
-  const url = `${GYMFIT_API_BASE_URL}/v1/exercises/${exerciseId}`;
+  const url = `${process.env.GYMFIT_API_BASE_URL}/v1/exercises/${exerciseId}`;
 
   const response = await upfetch(url, {
     headers: {

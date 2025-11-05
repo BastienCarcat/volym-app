@@ -12,11 +12,29 @@ import type { BaseInsightsParams, VolumeMetrics } from "./types";
 import { getVolumeRanges } from "./types";
 import { z } from "zod";
 import { circuitItemDbSchema } from "@/lib/schemas/sessions.schema";
+import {
+  evaluateCriteria,
+  createCriterionConfig,
+} from "./criteria-system";
+import {
+  evaluateBaseVolume,
+  type VolumeCriteriaData,
+} from "./volume-criteria";
 
 interface UseVolumeInsightsParams extends BaseInsightsParams {
   userLevel: UserLevel;
   objective: ProgramObjective;
 }
+
+/**
+ * Configure which criteria to use for volume evaluation
+ */
+const VOLUME_CRITERIA_CONFIG = [
+  {
+    evaluator: evaluateBaseVolume,
+    config: createCriterionConfig("baseVolume", 1.0), // 100% weight - only base volume for now
+  },
+];
 
 export const useVolumeInsights = ({
   program,
@@ -87,17 +105,32 @@ export const useVolumeInsights = ({
     const ranges = getVolumeRanges(userLevel, objective);
 
     return Object.entries(muscleCount).map(([muscle, sets]) => {
-      const { score, status, recommendation } = calculateVolumeScore(
-        sets,
-        ranges
+      // Prepare data for criteria evaluation
+      const criteriaData: VolumeCriteriaData = {
+        setsPerWeek: sets,
+        ranges,
+      };
+
+      // Evaluate all configured criteria
+      const evaluation = evaluateCriteria(criteriaData, VOLUME_CRITERIA_CONFIG);
+
+      // Extract volume status from base volume criterion
+      const baseVolumeCriterion = evaluation.criteria.find(
+        (c) => c.criterionName === "baseVolume"
       );
+      const volumeStatus =
+        (baseVolumeCriterion?.metadata?.volumeStatus as VolumeMetrics["status"]) ||
+        "below_mev";
+
+      // Get primary recommendation
+      const primaryRecommendation = evaluation.recommendations[0];
 
       return {
         muscle,
         setsPerWeek: sets,
-        score,
-        status,
-        recommendation,
+        score: evaluation.finalScore,
+        status: volumeStatus,
+        recommendation: primaryRecommendation,
         minRecommended: ranges.mav_min,
         maxRecommended: ranges.mav_max,
       };
@@ -112,62 +145,3 @@ export const useVolumeInsights = ({
     queryClient,
   ]);
 };
-
-function calculateVolumeScore(
-  sets: number,
-  ranges: ReturnType<typeof getVolumeRanges>
-): {
-  score: number;
-  status: VolumeMetrics["status"];
-  recommendation?: string;
-} {
-  if (sets === 0) {
-    return {
-      score: 0,
-      status: "below_mev",
-      recommendation:
-        "This muscle group is not trained. Consider adding exercises.",
-    };
-  }
-
-  if (sets < ranges.mev) {
-    return {
-      score: (sets / ranges.mev) * 50,
-      status: "below_mev",
-      recommendation: `Add ${ranges.mev - sets} more sets to reach minimum effective volume.`,
-    };
-  }
-
-  if (sets < ranges.mav_min) {
-    return {
-      score: 50 + ((sets - ranges.mev) / (ranges.mav_min - ranges.mev)) * 20,
-      status: "mev_to_mav",
-      recommendation: `Add ${ranges.mav_min - sets} more sets to reach optimal volume range.`,
-    };
-  }
-
-  if (sets <= ranges.mav_max) {
-    return {
-      score:
-        70 + ((sets - ranges.mav_min) / (ranges.mav_max - ranges.mav_min)) * 30,
-      status: "optimal",
-    };
-  }
-
-  if (sets <= ranges.mrv) {
-    return {
-      score:
-        100 - ((sets - ranges.mav_max) / (ranges.mrv - ranges.mav_max)) * 15,
-      status: "approaching_mrv",
-      recommendation:
-        "Volume is high. Monitor recovery and consider a deload week soon.",
-    };
-  }
-
-  return {
-    score: Math.max(0, 85 - ((sets - ranges.mrv) / 5) * 20),
-    status: "exceeding_mrv",
-    recommendation:
-      "Volume exceeds maximum recoverable volume. Reduce sets to avoid overtraining.",
-  };
-}

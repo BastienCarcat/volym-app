@@ -10,9 +10,18 @@ import {
   ProgramType,
 } from "@/generated/prisma";
 import type { BaseInsightsParams, FrequencyMetrics } from "./types";
-import { getOptimalFrequency, InsightStatus } from "./types";
+import { getOptimalFrequency } from "./types";
 import { z } from "zod";
 import { circuitItemDbSchema } from "@/lib/schemas/sessions.schema";
+import {
+  evaluateCriteria,
+  createCriterionConfig,
+} from "./criteria-system";
+import {
+  evaluateBaseFrequency,
+  evaluateFrequencyDistribution,
+  type FrequencyCriteriaData,
+} from "./frequency-criteria";
 
 interface UseFrequencyInsightsParams extends BaseInsightsParams {
   userLevel: UserLevel;
@@ -47,50 +56,20 @@ function mapCycleDaysToWeekDays(
   });
 }
 
-// Calculate minimum rest days between training sessions
-function calculateConsecutiveDaysAnalysis(dayIndices: number[]): {
-  hasConsecutiveDays: boolean;
-  minRestDays: number;
-  status: InsightStatus;
-} {
-  if (dayIndices.length <= 1) {
-    return {
-      hasConsecutiveDays: false,
-      minRestDays: 7,
-      status: InsightStatus.Excellent,
-    };
-  }
-
-  const sortedDays = [...dayIndices].sort((a, b) => a - b);
-  let minRestDays = 7;
-
-  // Check consecutive days within the week
-  for (let i = 0; i < sortedDays.length - 1; i++) {
-    const daysBetween = sortedDays[i + 1] - sortedDays[i] - 1;
-    minRestDays = Math.min(minRestDays, daysBetween);
-  }
-
-  // Check wrap-around (Sunday to Monday)
-  const wrapAround = 7 - sortedDays[sortedDays.length - 1] + sortedDays[0] - 1;
-  minRestDays = Math.min(minRestDays, wrapAround);
-
-  const hasConsecutiveDays = minRestDays === 0;
-
-  let status: InsightStatus;
-  if (minRestDays >= 2) {
-    status = InsightStatus.Excellent;
-  } else if (minRestDays === 1) {
-    status = InsightStatus.Good;
-  } else {
-    status = InsightStatus.Warning;
-  }
-
-  return {
-    hasConsecutiveDays,
-    minRestDays,
-    status,
-  };
-}
+/**
+ * Configure which criteria to use for frequency evaluation
+ * You can easily enable/disable criteria or adjust their weights
+ */
+const FREQUENCY_CRITERIA_CONFIG = [
+  {
+    evaluator: evaluateBaseFrequency,
+    config: createCriterionConfig("baseFrequency", 0.9), // 90% weight
+  },
+  {
+    evaluator: evaluateFrequencyDistribution,
+    config: createCriterionConfig("frequencyDistribution", 0.1, false), // 10% weight - disabled for now
+  },
+];
 
 export const useFrequencyInsights = ({
   program,
@@ -180,10 +159,6 @@ export const useFrequencyInsights = ({
 
     return Object.entries(muscleSessionData).map(([muscle, data]) => {
       const frequency = data.sessionIds.size;
-      const { score: baseScore, recommendation } = calculateFrequencyScore(
-        frequency,
-        optimalFrequency
-      );
 
       // Calculate dayIndices based on program type
       let dayIndices: number[] = [];
@@ -201,31 +176,29 @@ export const useFrequencyInsights = ({
       }
 
       const uniqueDayIndices = [...new Set(dayIndices)].sort();
-      const consecutiveDaysAnalysis =
-        calculateConsecutiveDaysAnalysis(uniqueDayIndices);
 
-      // Adjust score based on consecutive days status
-      let finalScore = baseScore;
-      if (uniqueDayIndices.length > 1 && consecutiveDaysAnalysis) {
-        // Apply penalty/bonus based on recovery days
-        if (consecutiveDaysAnalysis.status === InsightStatus.Warning) {
-          // Consecutive days: reduce score by 20 points
-          finalScore = Math.max(0, baseScore - 20);
-        } else if (consecutiveDaysAnalysis.status === InsightStatus.Good) {
-          // 1 day rest: small penalty of 5 points
-          finalScore = Math.max(0, baseScore - 5);
-        }
-        // Excellent (2+ days): no penalty, keep base score
-      }
+      // Prepare data for criteria evaluation
+      const criteriaData: FrequencyCriteriaData = {
+        frequency,
+        dayIndices: uniqueDayIndices,
+        optimal: optimalFrequency,
+      };
+
+      // Evaluate all configured criteria
+      const evaluation = evaluateCriteria(criteriaData, FREQUENCY_CRITERIA_CONFIG);
+
+      // Get primary recommendation (from lowest scoring criterion)
+      const lowestCriterion = evaluation.criteria.sort(
+        (a, b) => a.score - b.score
+      )[0];
+      const primaryRecommendation = lowestCriterion?.recommendation;
 
       return {
         muscle,
         timesPerWeek: frequency,
-        score: finalScore,
-        recommendation,
+        score: evaluation.finalScore,
+        recommendation: primaryRecommendation,
         dayIndices: uniqueDayIndices,
-        consecutiveDays:
-          uniqueDayIndices.length > 1 ? consecutiveDaysAnalysis : undefined,
       };
     });
   }, [
@@ -237,39 +210,3 @@ export const useFrequencyInsights = ({
     activeSessionFormValues,
   ]);
 };
-
-function calculateFrequencyScore(
-  frequency: number,
-  optimal: { min: number; optimal: number; max: number }
-): { score: number; recommendation?: string } {
-  if (frequency === 0) {
-    return {
-      score: 0,
-      recommendation: "This muscle group is not trained this week.",
-    };
-  }
-
-  if (frequency < optimal.min) {
-    return {
-      score: (frequency / optimal.min) * 70,
-      recommendation: `Train this muscle ${Math.ceil(optimal.min - frequency)}x more per week for optimal results.`,
-    };
-  }
-
-  if (frequency === Math.floor(optimal.optimal)) {
-    return { score: 100 };
-  }
-
-  if (frequency <= optimal.max) {
-    const deviation = Math.abs(frequency - optimal.optimal);
-    return {
-      score: 100 - deviation * 10,
-    };
-  }
-
-  return {
-    score: Math.max(50, 100 - (frequency - optimal.max) * 20),
-    recommendation:
-      "Training frequency is very high. Ensure adequate recovery between sessions.",
-  };
-}

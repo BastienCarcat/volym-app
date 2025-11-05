@@ -133,11 +133,6 @@ export interface MuscleDetailedMetrics {
     score: number;
     status: InsightStatus;
     dayIndices: number[]; // 0=Monday, 6=Sunday (for visual calendar)
-    consecutiveDays?: {
-      hasConsecutiveDays: boolean;
-      minRestDays: number;
-      status: InsightStatus;
-    };
   };
 
   // Other optional metrics
@@ -147,6 +142,11 @@ export interface MuscleDetailedMetrics {
 
   recovery?: {
     avgRestDays: number;
+    consecutiveDays?: {
+      hasConsecutiveDays: boolean;
+      minRestDays: number;
+      status: InsightStatus;
+    };
   };
 
   // All recommendations related to this muscle
@@ -228,14 +228,11 @@ export interface VolumeMetrics {
 export interface FrequencyMetrics {
   muscle: string;
   timesPerWeek: number;
-  score: number;
-  recommendation?: string;
+  score: number; // Now calculated from weighted criteria
+  recommendation?: string; // Primary recommendation from lowest-scoring criterion
   dayIndices: number[]; // 0=Monday, 6=Sunday
-  consecutiveDays?: {
-    hasConsecutiveDays: boolean;
-    minRestDays: number; // Minimum rest days between sessions
-    status: InsightStatus; // excellent (2+ days), good (1 day), warning (0 days)
-  };
+  // Future: add criteria array here if you want detailed breakdown in UI
+  // criteria?: CriterionEvaluation[];
 }
 
 export interface ExerciseBalanceMetrics {

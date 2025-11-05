@@ -6,8 +6,6 @@ import { z } from "zod";
 import { upfetch } from "@/lib/up-fetch";
 import { gymFitExerciseSchema } from "@/lib/schemas/gymfit";
 
-const GYMFIT_API_BASE_URL = "https://gym-fit.p.rapidapi.com";
-
 const pathParamsSchema = z.object({
   exerciseId: z.string(),
 });
@@ -20,7 +18,7 @@ export const GET = userRoute
       throw new SafeRouteError("GYMFIT_API_KEY is not configured", 500);
     }
 
-    const url = `${GYMFIT_API_BASE_URL}/v1/exercises/${params.exerciseId}`;
+    const url = `${process.env.GYMFIT_API_BASE_URL}/v1/exercises/${params.exerciseId}`;
 
     try {
       const response = await upfetch(url, {

@@ -64,7 +64,7 @@ function getBarColor(muscleData: MuscleDetailedMetrics): string {
   if (
     muscleData.volume.status === InsightStatus.Critical ||
     muscleData.frequency.status === InsightStatus.Critical ||
-    muscleData.frequency.consecutiveDays?.status === InsightStatus.Critical
+    muscleData.recovery?.consecutiveDays?.status === InsightStatus.Critical
   ) {
     return "var(--color-critical)";
   }
@@ -73,7 +73,7 @@ function getBarColor(muscleData: MuscleDetailedMetrics): string {
   if (
     muscleData.volume.status === InsightStatus.Warning ||
     muscleData.frequency.status === InsightStatus.Warning ||
-    muscleData.frequency.consecutiveDays?.status === InsightStatus.Warning
+    muscleData.recovery?.consecutiveDays?.status === InsightStatus.Warning
   ) {
     return "var(--color-warning)";
   }
@@ -154,6 +154,7 @@ export function MuscleDistributionSection({
             content={
               <ChartTooltipContent
                 hideIndicator
+                labelClassName="text-lg"
                 labelFormatter={(_, payload) => {
                   const data = payload[0]?.payload as ChartData;
                   return data?.muscle || "";
@@ -230,26 +231,27 @@ export function MuscleDistributionSection({
                         </div>
 
                         {/* Consecutive days warning */}
-                        {muscleData.frequency.consecutiveDays && (
-                          <div className="flex items-center gap-1 text-[10px]">
-                            <span className="text-muted-foreground">
-                              Recovery:
-                            </span>
-                            <span
-                              className={cn(
-                                "font-medium",
-                                getStatusColor(
-                                  muscleData.frequency.consecutiveDays.status
-                                )
-                              )}
-                            >
-                              {muscleData.frequency.consecutiveDays
-                                .minRestDays === 0
-                                ? "Consecutive days"
-                                : `${muscleData.frequency.consecutiveDays.minRestDays} day${muscleData.frequency.consecutiveDays.minRestDays > 1 ? "s" : ""} min rest`}
-                            </span>
-                          </div>
-                        )}
+                        {muscleData.frequency.timesPerWeek > 1 &&
+                          muscleData.recovery?.consecutiveDays && (
+                            <div className="flex items-center gap-1 text-[10px]">
+                              <span className="text-muted-foreground">
+                                Recovery:
+                              </span>
+                              <span
+                                className={cn(
+                                  "font-medium",
+                                  getStatusColor(
+                                    muscleData.recovery.consecutiveDays.status
+                                  )
+                                )}
+                              >
+                                {muscleData.recovery.consecutiveDays
+                                  .minRestDays === 0
+                                  ? "Consecutive days"
+                                  : `${muscleData.recovery.consecutiveDays.minRestDays} day${muscleData.recovery.consecutiveDays.minRestDays > 1 ? "s" : ""} min rest`}
+                              </span>
+                            </div>
+                          )}
                       </div>
 
                       {/* Recommendations section */}
