@@ -41,6 +41,7 @@ interface SessionCardProps {
 export type SessionFormValues = z.infer<typeof sessionWithItemsFormSchema>;
 
 export function SessionCard({ session, programId }: SessionCardProps) {
+  const [isTemplateDialogOpen, setIsTemplateDialogOpen] = React.useState(false);
   const { setActiveSession, resetActiveSession } = useProgramContext();
 
   const updateSessionCache = useUpdateSessionCache();
@@ -86,7 +87,6 @@ export function SessionCard({ session, programId }: SessionCardProps) {
     control: form.control,
     name: "sessionItems",
   });
-
   const estimatedDuration = React.useMemo(() => {
     const currentSession = {
       ...session,
@@ -94,8 +94,6 @@ export function SessionCard({ session, programId }: SessionCardProps) {
     } as SessionWithItems;
     return calculateSessionDuration(currentSession);
   }, [sessionItems, session]);
-
-  const [isTemplateDialogOpen, setIsTemplateDialogOpen] = React.useState(false);
 
   const canSave = form.formState.isDirty && !isPending;
 

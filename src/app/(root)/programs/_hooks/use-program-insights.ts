@@ -98,6 +98,8 @@ export const useProgramInsights = ({
 
   const exerciseBalance = useExerciseBalanceInsights({
     program,
+    activeSessionId,
+    activeSessionFormValues,
     currentWeek,
     userLevel,
     objective,

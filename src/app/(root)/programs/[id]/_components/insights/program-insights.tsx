@@ -23,13 +23,13 @@ export function ProgramInsights({ program }: ProgramInsightsProps) {
   });
 
   return (
-    <div className="space-y-4">
+    <div className="flex h-full flex-col gap-4">
       <div className="flex items-start justify-between">
         <h2 className="text-lg font-bold">Insights</h2>
         <ScoreBadge score={insights.totalScore} size="sm" />
       </div>
 
-      <div className="space-y-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-4">
         <MuscleDistributionSection metrics={insights.muscleMetrics} />
         <ExerciseMetricsSection metrics={insights.exerciseMetrics} />
       </div>

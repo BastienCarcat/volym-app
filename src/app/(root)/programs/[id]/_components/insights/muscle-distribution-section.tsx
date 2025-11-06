@@ -37,15 +37,15 @@ const chartConfig = {
   },
   critical: {
     label: "Critical",
-    color: "hsl(0 84.2% 60.2%)", // Red
+    color: "#ef4444", // red-500
   },
   warning: {
     label: "Warning",
-    color: "hsl(24.6 95% 53.1%)", // Orange
+    color: "#f97316", // orange-500
   },
   good: {
     label: "Good",
-    color: "hsl(142.1 76.2% 36.3%)", // Green
+    color: "#22c55e", // green-500
   },
 } satisfies ChartConfig;
 
@@ -122,15 +122,12 @@ export function MuscleDistributionSection({
   const totalSets = metrics.reduce((acc, m) => acc + m.volume.setsPerWeek, 0);
 
   return (
-    <div className="space-y-3">
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-semibold">Muscle distribution</h4>
-        <span className="text-muted-foreground text-xs">
-          {totalSets} total sets
-        </span>
       </div>
 
-      <ChartContainer config={chartConfig} className="h-[220px] w-full">
+      <ChartContainer config={chartConfig} className="min-h-0 flex-1 w-full">
         <BarChart
           accessibilityLayer
           data={chartData}

@@ -13,7 +13,7 @@ export function ScoreBadge({
   showLabel = false,
   className,
 }: ScoreBadgeProps) {
-  const { color, textColor, grade } = getScoreVisualization(score);
+  const { colorClass, textColor, grade } = getScoreVisualization(score);
   const circleSize = size === "sm" ? 60 : size === "md" ? 80 : 100;
   const strokeWidth = size === "sm" ? 4 : size === "md" ? 5 : 6;
   const radius = (circleSize - strokeWidth) / 2;
@@ -33,21 +33,21 @@ export function ScoreBadge({
           cx={circleSize / 2}
           cy={circleSize / 2}
           r={radius}
-          stroke="hsl(var(--muted))"
+          className="stroke-muted-foreground/30"
           strokeWidth={strokeWidth}
           fill="none"
+          opacity={0.3}
         />
         <circle
           cx={circleSize / 2}
           cy={circleSize / 2}
           r={radius}
-          stroke={color}
           strokeWidth={strokeWidth}
           fill="none"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           strokeLinecap="round"
-          className="transition-all duration-500"
+          className={cn("transition-all duration-500", colorClass)}
         />
         <g transform={`rotate(90 ${circleSize / 2} ${circleSize / 2})`}>
           <text
@@ -79,41 +79,41 @@ export function ScoreBadge({
 }
 
 function getScoreVisualization(score: number): {
-  color: string;
+  colorClass: string;
   textColor: string;
   grade: string;
 } {
   if (score >= 90) {
     return {
-      color: "hsl(142, 76%, 36%)",
-      textColor: "fill-green-600",
+      colorClass: "stroke-chart-2",
+      textColor: "fill-chart-2",
       grade: "Excellent",
     };
   }
   if (score >= 80) {
     return {
-      color: "hsl(142, 70%, 45%)",
-      textColor: "fill-green-500",
+      colorClass: "stroke-chart-2",
+      textColor: "fill-chart-2",
       grade: "Very Good",
     };
   }
   if (score >= 70) {
     return {
-      color: "hsl(45, 93%, 47%)",
-      textColor: "fill-yellow-600",
+      colorClass: "stroke-chart-3",
+      textColor: "fill-chart-3",
       grade: "Good",
     };
   }
   if (score >= 60) {
     return {
-      color: "hsl(25, 95%, 53%)",
-      textColor: "fill-orange-500",
+      colorClass: "stroke-chart-4",
+      textColor: "fill-chart-4",
       grade: "Fair",
     };
   }
   return {
-    color: "hsl(0, 84%, 60%)",
-    textColor: "fill-red-500",
+    colorClass: "stroke-chart-5",
+    textColor: "fill-chart-5",
     grade: "Needs Work",
   };
 }

@@ -38,6 +38,8 @@ const EXERCISE_BALANCE_CRITERIA_CONFIG = [
 
 export const useExerciseBalanceInsights = ({
   program,
+  activeSessionId,
+  activeSessionFormValues,
   currentWeek = 1,
   userLevel,
   objective,
@@ -46,6 +48,7 @@ export const useExerciseBalanceInsights = ({
 
   return useMemo(() => {
     const exerciseIds = new Set<string>();
+    const allExerciseIds: string[] = []; // Track all exercises including duplicates
 
     program.sessions
       .filter(
@@ -53,12 +56,19 @@ export const useExerciseBalanceInsights = ({
           (session.weekNumber ?? 1) === currentWeek && !session.isRestDay
       )
       .forEach((session) => {
-        session.sessionItems.forEach((sessionItem) => {
+        const isActiveSession = activeSessionId === session.id;
+        const sessionData =
+          isActiveSession && activeSessionFormValues
+            ? activeSessionFormValues
+            : session;
+
+        sessionData.sessionItems.forEach((sessionItem) => {
           if (
             sessionItem.type === SessionItemType.Exercise &&
             sessionItem.exercise
           ) {
             exerciseIds.add(sessionItem.exercise.exerciseId);
+            allExerciseIds.push(sessionItem.exercise.exerciseId);
           } else if (
             sessionItem.type === SessionItemType.Circuit &&
             sessionItem.circuit
@@ -67,6 +77,7 @@ export const useExerciseBalanceInsights = ({
               (circuitItem: z.infer<typeof circuitItemDbSchema>) => {
                 if (circuitItem.exercise) {
                   exerciseIds.add(circuitItem.exercise.exerciseId);
+                  allExerciseIds.push(circuitItem.exercise.exerciseId);
                 }
               }
             );
@@ -77,7 +88,8 @@ export const useExerciseBalanceInsights = ({
     let compoundCount = 0;
     let isolationCount = 0;
 
-    exerciseIds.forEach((exerciseId) => {
+    // Count compound/isolation based on ALL exercises (including duplicates)
+    allExerciseIds.forEach((exerciseId) => {
       const exercise = queryClient.getQueryData<GymFitExercise>(
         queryKeys.exercises.detail(exerciseId)
       );
@@ -136,5 +148,13 @@ export const useExerciseBalanceInsights = ({
       score: evaluation.finalScore,
       recommendation: primaryRecommendation,
     };
-  }, [program, currentWeek, userLevel, objective, queryClient]);
+  }, [
+    program,
+    activeSessionId,
+    activeSessionFormValues,
+    currentWeek,
+    userLevel,
+    objective,
+    queryClient,
+  ]);
 };

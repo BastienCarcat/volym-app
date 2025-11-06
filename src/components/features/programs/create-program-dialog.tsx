@@ -130,6 +130,7 @@ export function CreateProgramDialog({
         router.push(`/programs/${data.id}`);
         onOpenChange(false);
         refreshPrograms();
+        form.reset();
       },
     }
   );
@@ -154,7 +155,6 @@ export function CreateProgramDialog({
       executeUpdateUserLevel({ level: userLevel });
     }
     executeCreateProgram(newProgramValues);
-    form.reset();
   };
 
   return (
