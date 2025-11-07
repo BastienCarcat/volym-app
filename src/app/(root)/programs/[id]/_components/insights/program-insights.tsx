@@ -25,7 +25,14 @@ export function ProgramInsights({ program }: ProgramInsightsProps) {
   return (
     <div className="flex h-full flex-col gap-4">
       <div className="flex items-start justify-between">
-        <h2 className="text-lg font-bold">Insights</h2>
+        <h2 className="text-lg font-bold">
+          Insights
+          {currentWeek && (
+            <span className="text-muted-foreground ml-2 text-sm">
+              Week {currentWeek}
+            </span>
+          )}
+        </h2>
         <ScoreBadge score={insights.totalScore} size="sm" />
       </div>
 

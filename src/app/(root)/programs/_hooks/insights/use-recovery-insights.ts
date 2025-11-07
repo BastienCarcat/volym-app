@@ -84,9 +84,12 @@ export const useRecoveryInsights = ({
   return useMemo(() => {
     const isTypeDays = program.type === ProgramType.Days;
 
-    // Get sessions for current week sorted by day
+    // For Days type: filter by currentWeek
+    // For Cycle type: analyze all sessions
     const sessions = program.sessions
-      .filter((session) => (session.weekNumber ?? 1) === currentWeek)
+      .filter((session) =>
+        isTypeDays ? (session.weekNumber ?? 1) === currentWeek : true
+      )
       .filter((session) => !session.isRestDay)
       .sort((a, b) => {
         if (isTypeDays) {

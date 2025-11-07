@@ -95,11 +95,15 @@ export const useFrequencyInsights = ({
 
     const isTypeDays = program.type === ProgramType.Days;
 
+    // For Days type: filter by currentWeek
+    // For Cycle type: analyze all sessions
     program.sessions
-      .filter(
-        (session) =>
-          (session.weekNumber ?? 1) === currentWeek && !session.isRestDay
-      )
+      .filter((session) => {
+        const weekFilter = isTypeDays
+          ? (session.weekNumber ?? 1) === currentWeek
+          : true;
+        return weekFilter && !session.isRestDay;
+      })
       .forEach((session) => {
         const musclesInSession = new Set<string>();
 

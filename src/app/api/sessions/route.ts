@@ -140,6 +140,11 @@ export const POST = userRoute
       throw new SafeRouteError("Program not found", 404);
     }
 
+    // For Days type: weekNumber is required (default 1)
+    // For Cycle type: weekNumber should be null
+    const sessionWeekNumber =
+      program.type === "Days" ? weekNumber ?? 1 : null;
+
     const session = await prisma.session.create({
       data: {
         programId,
@@ -148,7 +153,7 @@ export const POST = userRoute
         day: day ?? null,
         cycleDay: cycleDay ?? null,
         isRestDay: isRestDay ?? false,
-        weekNumber: weekNumber ?? 1,
+        weekNumber: sessionWeekNumber,
         note: note ?? null,
       },
       select: {

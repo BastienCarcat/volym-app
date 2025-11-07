@@ -56,8 +56,13 @@ export const useVolumeInsights = ({
       [BodyPart.Core]: 0,
     };
 
+    // For Days type: filter by currentWeek
+    // For Cycle type: analyze all sessions
+    const isTypeDays = program.type === "Days";
     program.sessions
-      .filter((session) => (session.weekNumber ?? 1) === currentWeek)
+      .filter((session) =>
+        isTypeDays ? (session.weekNumber ?? 1) === currentWeek : true
+      )
       .forEach((session) => {
         const isActiveSession = activeSessionId === session.id;
         const sessionData =

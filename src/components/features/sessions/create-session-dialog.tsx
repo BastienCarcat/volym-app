@@ -24,8 +24,11 @@ import { useTemplates } from "@/app/(root)/templates/_hooks/use-templates";
 
 interface CreateSessionDialogProps {
   programId: string;
-  day: DayOfWeek;
-  weekNumber: number;
+  // For Days type
+  day?: DayOfWeek;
+  weekNumber?: number;
+  // For Cycle type
+  cycleDay?: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -34,10 +37,13 @@ export function CreateSessionDialog({
   programId,
   day,
   weekNumber,
+  cycleDay,
   open,
   onOpenChange,
 }: CreateSessionDialogProps) {
   const { data: templates = [] } = useTemplates();
+
+  const isCycleType = cycleDay !== undefined;
 
   const form = useZodForm({
     schema: createSessionFormSchema,
@@ -47,6 +53,8 @@ export function CreateSessionDialog({
       day,
       weekNumber,
       note: "",
+      isRestDay: false,
+      ...(isCycleType && { cycleDay }),
     },
   });
 
@@ -76,16 +84,19 @@ export function CreateSessionDialog({
 
   const hasTemplates = templates.length > 0;
 
+  const dialogTitle = isCycleType
+    ? `Add Day ${cycleDay}`
+    : "Create New Session";
+  const dialogDescription = isCycleType
+    ? `Create a new training session for Day ${cycleDay}.${hasTemplates ? " Optionally select a template to duplicate exercises from." : ""}`
+    : `Create a new training session for ${day}.${hasTemplates ? " Optionally select a template to duplicate exercises from." : ""}`;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Create New Session</DialogTitle>
-          <DialogDescription>
-            Create a new training session for {day}.
-            {hasTemplates &&
-              " Optionally select a template to duplicate exercises from."}
-          </DialogDescription>
+          <DialogTitle>{dialogTitle}</DialogTitle>
+          <DialogDescription>{dialogDescription}</DialogDescription>
         </DialogHeader>
         <Form form={form} onSubmit={handleSubmit} disabled={isPending}>
           <div className="space-y-4">
