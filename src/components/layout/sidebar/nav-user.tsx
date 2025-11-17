@@ -25,31 +25,34 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { signOut } from "@/app/auth/_actions/signout.action";
-import { useAction } from "next-safe-action/hooks";
+import { authClient } from "@/lib/better-auth/client";
 import { useCallback, useMemo } from "react";
 import { CompleteUser } from "@/lib/auth/types";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 function UserCard({
-  user: { authUser },
+  user: { authUser, dbUser },
 }: React.ComponentProps<"div"> & { user: CompleteUser }) {
   const userLetters = useMemo(() => {
     return authUser.email?.substring(0, 2).toUpperCase() || "AA";
   }, [authUser.email]);
 
+  const displayName = useMemo(() => {
+    if (dbUser.firstname && dbUser.lastname) {
+      return `${dbUser.firstname} ${dbUser.lastname}`;
+    }
+    return authUser.name || authUser.email;
+  }, [dbUser.firstname, dbUser.lastname, authUser.name, authUser.email]);
+
   return (
     <>
       <Avatar className="h-8 w-8 rounded-lg">
-        <AvatarImage
-          src={authUser.user_metadata?.avatar}
-          alt={authUser.user_metadata?.name || authUser.email}
-        />
+        <AvatarImage src={authUser.image || undefined} alt={displayName} />
         <AvatarFallback className="rounded-lg">{userLetters}</AvatarFallback>
       </Avatar>
       <div className="grid flex-1 text-left text-sm leading-tight">
-        <span className="truncate font-medium">
-          {authUser.user_metadata?.name || authUser.email}
-        </span>
+        <span className="truncate font-medium">{displayName}</span>
         <span className="truncate text-xs">{authUser.email}</span>
       </div>
     </>
@@ -58,10 +61,19 @@ function UserCard({
 
 export function NavUser({ user }: { user: CompleteUser }) {
   const { isMobile } = useSidebar();
+  const router = useRouter();
 
-  const { execute: logout } = useAction(signOut);
+  const handleLogout = useCallback(async () => {
+    const { error } = await authClient.signOut();
 
-  const handleLogout = useCallback(() => logout(), [logout]);
+    if (error) {
+      toast.error("Failed to logout. Please try again.");
+      return;
+    }
+
+    router.push("/auth/login");
+    router.refresh();
+  }, [router]);
 
   return (
     <SidebarMenu className="py-2">

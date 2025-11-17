@@ -66,20 +66,20 @@ enum CircuitItemType {
 }
 
 enum UserLevel {
-  Beginner      // < 1 an
-  Intermediate  // 1-3 ans
-  Advanced      // 3-5 ans
-  Elite         // 5+ ans
+  Beginner // < 1 an
+  Intermediate // 1-3 ans
+  Advanced // 3-5 ans
+  Elite // 5+ ans
 }
 
 enum ProgramObjective {
-  Hypertrophy      // Prise de masse musculaire
-  Strength         // Force maximale
-  PowerLifting     // Compétition powerlifting
-  Endurance        // Endurance musculaire
-  Recomposition    // Perte de gras + muscle
-  Athletic         // Performance athlétique
-  General          // Condition physique générale
+  Hypertrophy // Prise de masse musculaire
+  Strength // Force maximale
+  PowerLifting // Compétition powerlifting
+  Endurance // Endurance musculaire
+  Recomposition // Perte de gras + muscle
+  Athletic // Performance athlétique
+  General // Condition physique générale
 }
 
 enum BodyPart {
@@ -92,24 +92,76 @@ enum BodyPart {
 }
 
 // ==========================================
-// USERS
+// AUTHENTICATION & USER (Better Auth + Application)
 // ==========================================
 
 model User {
-  id         String     @id @default(uuid())
+  id            String   @id
+  name          String
+  email         String
+  emailVerified Boolean  @default(false)
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now()) @updatedAt
+
+  // Application-specific fields
+  firstname  String     @default("")
+  lastname   String     @default("")
+  gender     Gender     @default(Male)
   weight     Int?
   height     Int?
-  lastname   String
-  firstname  String
-  gender     Gender
-  email      String     @unique
   type       UserType   @default(Athlete)
   level      UserLevel?
   weaknesses BodyPart[]
   strengths  BodyPart[]
 
+  // Relations
   programs         Program[]
   workoutTemplates WorkoutTemplate[]
+  sessions         AuthSession[]
+  accounts         Account[]
+
+  @@unique([email])
+}
+
+model AuthSession {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
 }
 
 // ==========================================
@@ -117,14 +169,14 @@ model User {
 // ==========================================
 
 model Program {
-  id        String             @id @default(uuid())
+  id        String            @id @default(uuid())
   createdBy String
-  note      String?            @db.Text
+  note      String?           @db.Text
   name      String
-  type      ProgramType        @default(Days)
+  type      ProgramType       @default(Days)
   objective ProgramObjective?
-  createdAt DateTime           @default(now())
-  updatedAt DateTime           @updatedAt
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
   deletedAt DateTime?
 
   user     User      @relation(fields: [createdBy], references: [id])

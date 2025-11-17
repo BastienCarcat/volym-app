@@ -1,35 +1,38 @@
-import { createClient } from "@/lib/supabase/server";
+import { auth } from "@/lib/better-auth/auth";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma/prisma";
 import { CompleteUser } from "./types";
+import { headers } from "next/headers";
 
 /**
- * Get the authenticated user from Supabase
+ * Get the authenticated user from Better Auth
  * Redirects to login if user is not authenticated
  */
 export async function getAuthenticatedUser(): Promise<CompleteUser> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-  if (error || !user) {
+  if (!session || !session.user) {
     redirect("/auth/login");
   }
 
   const dbUser = await prisma.user.findUnique({
     where: {
-      id: user.id,
+      id: session.user.id,
     },
   });
 
   if (!dbUser) {
-    redirect("/auth/login");
+    redirect("/auth/onboarding");
+  }
+
+  if (!dbUser.firstname || !dbUser.lastname) {
+    redirect("/auth/onboarding");
   }
 
   return {
-    authUser: user,
+    authUser: session.user,
     dbUser,
   };
 }
@@ -39,19 +42,17 @@ export async function getAuthenticatedUser(): Promise<CompleteUser> {
  * Returns null if user is not authenticated
  */
 export async function getCurrentUser(): Promise<CompleteUser | null> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-  if (error || !user) {
+  if (!session || !session.user) {
     return null;
   }
 
   const dbUser = await prisma.user.findUnique({
     where: {
-      id: user.id,
+      id: session.user.id,
     },
   });
 
@@ -60,7 +61,7 @@ export async function getCurrentUser(): Promise<CompleteUser | null> {
   }
 
   return {
-    authUser: user,
+    authUser: session.user,
     dbUser,
   };
 }
