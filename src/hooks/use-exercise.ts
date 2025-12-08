@@ -17,7 +17,7 @@ interface FetchExercisesParams {
   query?: string;
   equipment?: string;
   offset?: number;
-  number?: number;
+  limit?: number;
 }
 
 const fetchExercises = async (params: FetchExercisesParams) => {
@@ -28,8 +28,8 @@ const fetchExercises = async (params: FetchExercisesParams) => {
   if (params.equipment) searchParams.append("equipment", params.equipment);
   if (params.offset !== undefined)
     searchParams.append("offset", params.offset.toString());
-  if (params.number !== undefined)
-    searchParams.append("number", params.number.toString());
+  if (params.limit !== undefined)
+    searchParams.append("limit", params.limit.toString());
 
   const url = `/api/exercises/search${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
 
@@ -55,7 +55,7 @@ export const useExercises = (params: UseExercisesParams = {}) => {
       bodyPart,
       query,
       equipment,
-      number: pageSize,
+      limit: pageSize,
     }),
     queryFn: ({ pageParam = 0 }) => {
       const data = fetchExercises({
@@ -63,7 +63,7 @@ export const useExercises = (params: UseExercisesParams = {}) => {
         query,
         equipment,
         offset: pageParam,
-        number: pageSize,
+        limit: pageSize,
       });
       return data;
     },

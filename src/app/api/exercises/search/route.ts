@@ -12,7 +12,7 @@ const searchParamsSchema = z.object({
     .optional(),
   query: z.string().optional(),
   offset: z.coerce.number().min(0).max(300).optional().default(0),
-  number: z.coerce.number().min(1).max(50).optional().default(20),
+  limit: z.coerce.number().min(1).max(50).optional().default(20),
 });
 
 export const GET = userRoute
@@ -28,7 +28,7 @@ export const GET = userRoute
     if (query.bodyPart) searchParams.append("bodyPart", query.bodyPart);
     if (query.query) searchParams.append("query", query.query);
     searchParams.append("offset", query.offset.toString());
-    searchParams.append("number", query.number.toString());
+    searchParams.append("limit", query.limit.toString());
 
     const url = `${process.env.GYMFIT_API_BASE_URL}/v1/exercises/search?${searchParams.toString()}`;
 

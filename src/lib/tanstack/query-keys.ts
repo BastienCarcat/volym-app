@@ -42,7 +42,7 @@ export const queryKeys = {
       query?: string;
       equipment?: string;
       offset?: number;
-      number?: number;
+      limit?: number;
     }) => [...queryKeys.exercises.lists(), { filters }] as const,
     details: () => [...queryKeys.exercises.all, "detail"] as const,
     detail: (id: string) => [...queryKeys.exercises.details(), id] as const,
